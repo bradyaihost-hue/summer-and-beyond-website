@@ -1035,8 +1035,9 @@
             <!-- Flyout calendar -->
             <div class="calendar-flyout" id="calendar-flyout" style="display:none;">
               <div class="calendar-nav">
-                <button type="button" class="cal-nav-btn" id="cal-prev">&#8249;</button>
-                <button type="button" class="cal-nav-btn" id="cal-next">&#8250;</button>
+                <button type="button" class="cal-nav-btn" id="cal-prev">&#8249; Prev</button>
+                <span id="cal-nav-label" style="font-family:'DM Sans',sans-serif;font-size:12px;color:var(--stone);letter-spacing:0.08em;"></span>
+                <button type="button" class="cal-nav-btn" id="cal-next">Next &#8250;</button>
               </div>
               <!-- Two month calendars side by side -->
               <div class="calendar-months">
@@ -1292,14 +1293,17 @@
     }
 
     function renderCalendar() {
+      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
       const m1 = document.getElementById('cal-month-1');
       const m2 = document.getElementById('cal-month-2');
       renderMonth(m1, viewYear, viewMonth);
-      // Calculate next month
       let nextMonth = viewMonth + 1;
       let nextYear = viewYear;
       if (nextMonth > 11) { nextMonth = 0; nextYear++; }
       renderMonth(m2, nextYear, nextMonth);
+      // Update nav label
+      const navLabel = document.getElementById('cal-nav-label');
+      if (navLabel) navLabel.textContent = `${monthNames[viewMonth]} – ${monthNames[nextMonth]} ${nextYear}`;
     }
 
     function updateDisplay() {
@@ -1378,18 +1382,23 @@
       renderCalendar();
     });
 
-    // Flexible toggle
+    // Flexible toggle — keeps dates, just appends flexible flag
     flexibleCheck.addEventListener('change', function() {
       if (this.checked) {
-        displayText.textContent = 'Flexible on dates';
-        fromHidden.value = 'flexible';
-        toHidden.value = 'flexible';
-        display.style.opacity = '0.5';
-        display.style.pointerEvents = 'none';
+        // Keep existing dates but append "flexible" to hidden values
+        if (startDate) {
+          fromHidden.value = formatISO(startDate) + '_flexible';
+          toHidden.value = endDate ? formatISO(endDate) + '_flexible' : 'flexible';
+        } else {
+          fromHidden.value = 'flexible';
+          toHidden.value = 'flexible';
+        }
+        // Show subtle indicator on display
+        if (!displayText.textContent.includes('(flexible)')) {
+          displayText.textContent += ' (flexible)';
+        }
       } else {
-        display.style.opacity = '1';
-        display.style.pointerEvents = 'auto';
-        startDate = null; endDate = null;
+        // Restore normal values
         updateDisplay();
       }
     });
