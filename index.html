@@ -705,6 +705,153 @@
       .footer-nav { justify-content: center; }
       .footer-right { justify-content: center; }
     }
+
+  /* Date Range Picker */
+  .date-range-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .date-range-display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--white);
+    border: 1px solid rgba(107,79,58,0.2);
+    border-radius: 4px;
+    cursor: pointer;
+    flex: 1;
+    min-width: 200px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    color: var(--warm-brown);
+    transition: border-color 0.15s;
+  }
+
+  .date-range-display:hover { border-color: var(--sage); }
+  .date-range-display.active { border-color: var(--sage); }
+
+  .date-icon { font-size: 16px; }
+
+  .flexible-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .flexible-toggle input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--sage);
+    cursor: pointer;
+  }
+
+  .flexible-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--stone);
+  }
+
+  .calendar-flyout {
+    position: absolute;
+    z-index: 100;
+    background: white;
+    border: 1px solid rgba(107,79,58,0.15);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(107,79,58,0.12);
+    padding: 20px;
+    margin-top: 8px;
+    width: 100%;
+    max-width: 580px;
+  }
+
+  .calendar-months {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .calendar-month { font-family: 'DM Sans', sans-serif; }
+
+  .cal-month-header {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--warm-brown);
+    margin-bottom: 12px;
+  }
+
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+
+  .cal-day-header {
+    text-align: center;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--stone);
+    padding: 4px 0;
+  }
+
+  .cal-day {
+    text-align: center;
+    padding: 7px 4px;
+    font-size: 13px;
+    cursor: pointer;
+    border-radius: 3px;
+    color: var(--warm-brown);
+    transition: background 0.1s;
+  }
+
+  .cal-day:hover:not(.cal-empty):not(.cal-past) { background: var(--cream); }
+  .cal-day.cal-empty { cursor: default; }
+  .cal-day.cal-past { color: #ccc; cursor: default; }
+  .cal-day.cal-selected { background: var(--sage); color: white; border-radius: 3px; }
+  .cal-day.cal-in-range { background: rgba(163,186,158,0.2); border-radius: 0; }
+  .cal-day.cal-range-start { background: var(--sage); color: white; border-radius: 3px 0 0 3px; }
+  .cal-day.cal-range-end { background: var(--sage); color: white; border-radius: 0 3px 3px 0; }
+  .cal-day.cal-today { font-weight: 700; }
+
+  .calendar-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(107,79,58,0.1);
+  }
+
+  #cal-selection-hint {
+    font-size: 13px;
+    color: var(--stone);
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .cal-clear {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    color: var(--stone);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+  }
+
+  @media (max-width: 600px) {
+    .calendar-months { grid-template-columns: 1fr; }
+    .calendar-flyout { max-width: 100%; }
+  }
   </style>
 </head>
 <body>
@@ -846,19 +993,34 @@
             <input type="text" id="destination" name="destination" placeholder='Where to, or "Not sure yet"' />
           </div>
 
-          <div class="form-field">
+          <div class="form-field full" id="dates-field" style="position: relative;">
             <label>Travel Dates</label>
-            <div style="display:flex; gap:12px; flex-wrap:wrap;">
-              <div style="flex:1; min-width:120px;">
-                <label for="date-from" style="font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--stone); margin-bottom:4px; display:block;">From</label>
-                <input type="date" id="date-from" name="date_from" />
+            <div class="date-range-wrapper">
+              <div class="date-range-display" id="date-display">
+                <span class="date-icon">📅</span>
+                <span id="date-display-text">Select dates</span>
               </div>
-              <div style="flex:1; min-width:120px;">
-                <label for="date-to" style="font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--stone); margin-bottom:4px; display:block;">To</label>
-                <input type="date" id="date-to" name="date_to" />
+              <label class="flexible-toggle">
+                <input type="checkbox" id="flexible-dates" name="flexible_dates">
+                <span class="flexible-label">I'm flexible</span>
+              </label>
+            </div>
+            <!-- Hidden inputs that get submitted -->
+            <input type="hidden" name="date_from" id="date-from-hidden">
+            <input type="hidden" name="date_to" id="date-to-hidden">
+
+            <!-- Flyout calendar -->
+            <div class="calendar-flyout" id="calendar-flyout" style="display:none;">
+              <!-- Two month calendars side by side -->
+              <div class="calendar-months">
+                <div class="calendar-month" id="cal-month-1"></div>
+                <div class="calendar-month" id="cal-month-2"></div>
+              </div>
+              <div class="calendar-footer">
+                <span id="cal-selection-hint">Select your departure date</span>
+                <button type="button" class="cal-clear" id="cal-clear">Clear</button>
               </div>
             </div>
-            <p style="font-size:11px; color:var(--stone); margin-top:6px;">Flexible on dates? No worries — just give us your best guess.</p>
           </div>
 
           <div class="form-field full">
@@ -1037,6 +1199,146 @@
       }
     });
   }
+
+  // ── Custom Date Range Picker ─────────────────────────────────────────────
+  (function() {
+    const display = document.getElementById('date-display');
+    const displayText = document.getElementById('date-display-text');
+    const flyout = document.getElementById('calendar-flyout');
+    const fromHidden = document.getElementById('date-from-hidden');
+    const toHidden = document.getElementById('date-to-hidden');
+    const flexibleCheck = document.getElementById('flexible-dates');
+    const hint = document.getElementById('cal-selection-hint');
+    const clearBtn = document.getElementById('cal-clear');
+
+    if (!display) return;
+
+    let startDate = null;
+    let endDate = null;
+    let selecting = 'start'; // 'start' or 'end'
+
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    function formatDate(d) {
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function formatISO(d) {
+      return d.toISOString().split('T')[0];
+    }
+
+    function renderMonth(container, year, month) {
+      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const days = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      let html = `<div class="cal-month-header">${monthNames[month]} ${year}</div>`;
+      html += '<div class="cal-grid">';
+      days.forEach(d => { html += `<div class="cal-day-header">${d}</div>`; });
+
+      for (let i = 0; i < firstDay; i++) html += '<div class="cal-day cal-empty"></div>';
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const date = new Date(year, month, d);
+        date.setHours(0,0,0,0);
+        let cls = 'cal-day';
+        if (date < today) cls += ' cal-past';
+        if (date.toDateString() === today.toDateString()) cls += ' cal-today';
+        if (startDate && date.toDateString() === startDate.toDateString()) cls += ' cal-range-start';
+        else if (endDate && date.toDateString() === endDate.toDateString()) cls += ' cal-range-end';
+        else if (startDate && endDate && date > startDate && date < endDate) cls += ' cal-in-range';
+
+        html += `<div class="${cls}" data-date="${formatISO(date)}">${d}</div>`;
+      }
+      html += '</div>';
+      container.innerHTML = html;
+
+      container.querySelectorAll('.cal-day:not(.cal-empty):not(.cal-past)').forEach(el => {
+        el.addEventListener('click', () => handleDayClick(new Date(el.dataset.date + 'T12:00:00')));
+      });
+    }
+
+    function renderCalendar() {
+      const now = new Date();
+      const m1 = document.getElementById('cal-month-1');
+      const m2 = document.getElementById('cal-month-2');
+      renderMonth(m1, now.getFullYear(), now.getMonth());
+      const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      renderMonth(m2, next.getFullYear(), next.getMonth());
+    }
+
+    function updateDisplay() {
+      if (startDate && endDate) {
+        displayText.textContent = `${formatDate(startDate)} – ${formatDate(endDate)}`;
+        fromHidden.value = formatISO(startDate);
+        toHidden.value = formatISO(endDate);
+      } else if (startDate) {
+        displayText.textContent = `${formatDate(startDate)} – select end date`;
+        fromHidden.value = formatISO(startDate);
+      } else {
+        displayText.textContent = 'Select dates';
+        fromHidden.value = '';
+        toHidden.value = '';
+      }
+      renderCalendar();
+    }
+
+    function handleDayClick(date) {
+      date.setHours(0,0,0,0);
+      if (selecting === 'start' || (startDate && date <= startDate)) {
+        startDate = date;
+        endDate = null;
+        selecting = 'end';
+        hint.textContent = 'Now select your return date';
+      } else {
+        endDate = date;
+        selecting = 'start';
+        hint.textContent = 'Dates selected ✓';
+        setTimeout(() => { flyout.style.display = 'none'; display.classList.remove('active'); }, 400);
+      }
+      updateDisplay();
+    }
+
+    display.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = flyout.style.display !== 'none';
+      flyout.style.display = isOpen ? 'none' : 'block';
+      display.classList.toggle('active', !isOpen);
+      if (!isOpen) renderCalendar();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!flyout.contains(e.target) && e.target !== display) {
+        flyout.style.display = 'none';
+        display.classList.remove('active');
+      }
+    });
+
+    clearBtn.addEventListener('click', () => {
+      startDate = null; endDate = null; selecting = 'start';
+      hint.textContent = 'Select your departure date';
+      updateDisplay();
+    });
+
+    // Flexible toggle
+    flexibleCheck.addEventListener('change', function() {
+      if (this.checked) {
+        displayText.textContent = 'Flexible on dates';
+        fromHidden.value = 'flexible';
+        toHidden.value = 'flexible';
+        display.style.opacity = '0.5';
+        display.style.pointerEvents = 'none';
+      } else {
+        display.style.opacity = '1';
+        display.style.pointerEvents = 'auto';
+        startDate = null; endDate = null;
+        updateDisplay();
+      }
+    });
+  })();
 </script>
 
 </body>
