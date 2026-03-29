@@ -124,7 +124,7 @@ async function sendIntakeEmail(formData) {
     body: JSON.stringify({
       from: FROM_ADDRESS,
       to: [HALLIE_EMAIL],
-      cc: [BRADY_EMAIL],
+      // cc removed per Hallie request
       subject,
       html: buildIntakeHtml(formData),
     }),
