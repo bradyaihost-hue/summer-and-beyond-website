@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Summer & Beyond Travel — Luxury Travel Advisory</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Forum&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300;1,9..40,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sage: #A3BA9E;
+      --cream: #F5F0E8;
+      --dusty-pink: #D4A5A0;
+      --pale-yellow: #E8D98A;
+      --warm-brown: #6B4F3A;
+      --stone: #A09B99;
+      --white: #FFFFFF;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--cream);
+      color: var(--warm-brown);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: var(--cream);
+      padding: 0 48px;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: border-bottom 0.3s ease;
+    }
+    nav.scrolled {
+      border-bottom: 1px solid rgba(107, 79, 58, 0.08);
+    }
+
+    .logo-lockup { display: flex; flex-direction: column; line-height: 1; text-decoration: none; align-items: flex-start; }
+    .logo-name {
+      font-family: 'Forum', serif;
+      font-size: 20px;
+      color: var(--warm-brown);
+      letter-spacing: 0.01em;
+    }
+    .logo-name .amp { color: var(--sage); }
+    .logo-sub { text-align: center; width: 100%; 
+      font-family: 'DM Sans', sans-serif;
+      font-size: 9px;
+      font-variant: small-caps;
+      letter-spacing: 0.18em;
+      color: var(--warm-brown);
+      margin-top: 1px;
+      text-transform: uppercase;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 36px;
+    }
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--warm-brown);
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--sage); }
+
+    .btn-nav {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      background: var(--sage);
+      color: var(--cream);
+      border: none;
+      padding: 10px 22px;
+      border-radius: 3px;
+      cursor: pointer;
+      text-decoration: none;
+      letter-spacing: 0.03em;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-nav:hover { background: #8eaa89; transform: translateY(-1px); }
+
+    /* Mobile hamburger */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 4px;
+    }
+    .hamburger span {
+      display: block;
+      width: 24px;
+      height: 1.5px;
+      background: var(--warm-brown);
+      transition: all 0.3s;
+    }
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      top: 72px; left: 0; right: 0;
+      background: var(--cream);
+      border-bottom: 1px solid rgba(107,79,58,0.1);
+      padding: 24px 32px;
+      z-index: 99;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      color: var(--warm-brown);
+      text-decoration: none;
+    }
+
+    /* ─── HERO ─── */
+    #home {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding-top: 72px;
+    }
+    .hero-left {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 80px 64px 80px 80px;
+    }
+    .eyebrow {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--stone);
+      margin-bottom: 24px;
+    }
+    .hero-headline {
+      font-family: 'Forum', serif;
+      font-size: clamp(36px, 4vw, 58px);
+      line-height: 1.15;
+      color: var(--warm-brown);
+      margin-bottom: 24px;
+    }
+    .hero-subline {
+      font-size: 17px;
+      line-height: 1.65;
+      color: var(--stone);
+      font-weight: 300;
+      max-width: 440px;
+      margin-bottom: 44px;
+    }
+    .hero-ctas {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      background: var(--sage);
+      color: var(--cream);
+      padding: 14px 32px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      text-decoration: none;
+      letter-spacing: 0.03em;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-primary:hover { background: #8eaa89; transform: translateY(-1px); }
+    .btn-ghost {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      background: transparent;
+      color: var(--warm-brown);
+      padding: 13px 30px;
+      border: 1px solid var(--warm-brown);
+      border-radius: 3px;
+      cursor: pointer;
+      text-decoration: none;
+      letter-spacing: 0.03em;
+      transition: background 0.2s, color 0.2s, transform 0.15s;
+    }
+    .btn-ghost:hover {
+      background: var(--warm-brown);
+      color: var(--cream);
+      transform: translateY(-1px);
+    }
+
+    .hero-right {
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-right img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* ─── ABOUT ─── */
+    #about {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 80vh;
+    }
+    .about-left {
+      position: relative;
+      overflow: hidden;
+    }
+    .about-left img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .about-right {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 80px 80px 80px 72px;
+      background: var(--cream);
+    }
+    .section-label {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--stone);
+      margin-bottom: 20px;
+    }
+    .section-headline {
+      font-family: 'Forum', serif;
+      font-size: clamp(28px, 3vw, 44px);
+      line-height: 1.2;
+      color: var(--warm-brown);
+      margin-bottom: 28px;
+    }
+    .about-body p {
+      font-size: 16px;
+      line-height: 1.75;
+      color: #7a6558;
+      font-weight: 300;
+      margin-bottom: 18px;
+    }
+    .about-closing {
+      font-family: 'Forum', serif;
+      font-style: italic;
+      font-size: 18px;
+      color: var(--warm-brown);
+      margin-top: 8px;
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+    .about-signature {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      color: var(--stone);
+      letter-spacing: 0.05em;
+    }
+
+    /* ─── SERVICES ─── */
+    #services {
+      padding: 100px 80px;
+      background: var(--cream);
+    }
+    .services-header {
+      text-align: center;
+      max-width: 560px;
+      margin: 0 auto 64px;
+    }
+    .services-subline {
+      font-size: 16px;
+      line-height: 1.65;
+      color: var(--stone);
+      font-weight: 300;
+      margin-top: 16px;
+    }
+    .services-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 24px;
+      max-width: 1120px;
+      margin: 0 auto;
+    }
+    .service-card {
+      background: var(--white);
+      border: 1px solid rgba(107, 79, 58, 0.15);
+      border-radius: 6px;
+      padding: 44px 40px;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      position: relative;
+    }
+    .service-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 48px rgba(107, 79, 58, 0.09);
+    }
+    .service-card.elevated {
+      border-color: var(--sage);
+      border-width: 1.5px;
+    }
+    .card-tag {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+    .card-tag.sage { color: var(--sage); }
+    .card-tag.pink { color: var(--dusty-pink); }
+    .card-tag.yellow { color: #b89d30; }
+
+    /* Arrow/form icon (Tier 1 — sage) */
+    .icon-arrow {
+      width: 44px;
+      height: 44px;
+      border: 1.5px solid var(--sage);
+      border-radius: 4px;
+      position: relative;
+      margin-bottom: 28px;
+    }
+    .icon-arrow::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 14px;
+      height: 1.5px;
+      background: var(--sage);
+      transform: translate(-50%, -50%);
+    }
+    .icon-arrow::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: calc(50% + 3px);
+      width: 6px;
+      height: 6px;
+      border-top: 1.5px solid var(--sage);
+      border-right: 1.5px solid var(--sage);
+      transform: translateY(-50%) rotate(45deg);
+    }
+
+    /* Compass icon CSS (Tier 2 — dusty pink) */
+    .icon-compass {
+      width: 44px;
+      height: 44px;
+      border: 1.5px solid var(--dusty-pink);
+      border-radius: 50%;
+      position: relative;
+      margin-bottom: 28px;
+    }
+    .icon-compass::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 16px;
+      height: 1.5px;
+      background: var(--dusty-pink);
+      transform: translate(-50%, -50%) rotate(-35deg);
+    }
+
+    /* Star/diamond icon (Tier 3 — pale yellow) */
+    .icon-star {
+      width: 44px;
+      height: 44px;
+      position: relative;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .icon-star::after {
+      content: '';
+      display: block;
+      width: 24px;
+      height: 24px;
+      border: 1.5px solid var(--pale-yellow);
+      transform: rotate(45deg);
+      border-radius: 2px;
+    }
+
+    .card-title {
+      font-family: 'Forum', serif;
+      font-size: 26px;
+      color: var(--warm-brown);
+      margin-bottom: 16px;
+      line-height: 1.2;
+    }
+    .card-desc {
+      font-size: 15px;
+      line-height: 1.7;
+      color: #7a6558;
+      font-weight: 300;
+      margin-bottom: 32px;
+    }
+    .btn-card {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--warm-brown);
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--warm-brown);
+      padding-bottom: 2px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .btn-card:hover { color: var(--sage); border-color: var(--sage); }
+
+    /* ─── CONTACT ─── */
+    #contact {
+      background: var(--sage);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 700px;
+    }
+    .contact-left {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 80px 56px 80px 80px;
+    }
+    .contact-headline {
+      font-family: 'Forum', serif;
+      font-size: clamp(32px, 3.5vw, 50px);
+      color: var(--cream);
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+    .contact-subline {
+      font-size: 16px;
+      line-height: 1.6;
+      color: rgba(245, 240, 232, 0.75);
+      font-weight: 300;
+      margin-bottom: 44px;
+    }
+    .expect-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .expect-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      font-size: 15px;
+      line-height: 1.5;
+      color: rgba(245, 240, 232, 0.88);
+      font-weight: 300;
+    }
+    .expect-list li::before {
+      content: '';
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      min-width: 20px;
+      border: 1px solid rgba(245,240,232,0.4);
+      border-radius: 50%;
+      margin-top: 1px;
+      background: rgba(245,240,232,0.15);
+    }
+
+    .contact-right {
+      display: flex;
+      align-items: center;
+      padding: 60px 80px 60px 40px;
+    }
+    .form-card {
+      background: var(--cream);
+      border-radius: 8px;
+      padding: 48px;
+      width: 100%;
+      max-width: 520px;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .form-grid .full { grid-column: 1 / -1; }
+
+    label {
+      display: block;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--stone);
+      margin-bottom: 7px;
+    }
+    input[type="text"],
+    input[type="email"],
+    select,
+    textarea {
+      width: 100%;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 300;
+      color: var(--warm-brown);
+      background: var(--white);
+      border: 1px solid rgba(107,79,58,0.18);
+      border-radius: 4px;
+      padding: 11px 14px;
+      outline: none;
+      transition: border-color 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--sage);
+    }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23A09B99' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+      cursor: pointer;
+    }
+    textarea { resize: vertical; min-height: 90px; }
+
+    .checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      color: #7a6558;
+      cursor: pointer;
+      font-weight: 300;
+    }
+    .checkbox-item input[type="checkbox"] {
+      width: 15px;
+      height: 15px;
+      border: 1px solid rgba(107,79,58,0.25);
+      border-radius: 2px;
+      accent-color: var(--sage);
+      cursor: pointer;
+    }
+
+    .form-field { display: flex; flex-direction: column; }
+
+    .btn-submit {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      background: var(--warm-brown);
+      color: var(--cream);
+      border: none;
+      border-radius: 4px;
+      padding: 15px;
+      width: 100%;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      margin-top: 8px;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-submit:hover { background: #5a4030; transform: translateY(-1px); }
+
+    /* ─── FOOTER ─── */
+    footer {
+      background: var(--cream);
+      border-top: 1px solid rgba(107,79,58,0.08);
+      padding: 48px 80px 0;
+    }
+    .footer-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 36px;
+    }
+    .footer-nav {
+      display: flex;
+      gap: 32px;
+      list-style: none;
+    }
+    .footer-nav a {
+      font-size: 13px;
+      color: var(--stone);
+      text-decoration: none;
+      letter-spacing: 0.03em;
+      transition: color 0.2s;
+    }
+    .footer-nav a:hover { color: var(--warm-brown); }
+    .footer-right {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+    .footer-domain {
+      font-size: 13px;
+      color: var(--stone);
+      letter-spacing: 0.03em;
+    }
+    .icon-instagram {
+      width: 22px;
+      height: 22px;
+      border: 1.5px solid var(--stone);
+      border-radius: 6px;
+      position: relative;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .icon-instagram::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 8px; height: 8px;
+      border: 1.5px solid var(--stone);
+      border-radius: 50%;
+    }
+    .icon-instagram::before {
+      content: '';
+      position: absolute;
+      top: 4px; right: 4px;
+      width: 3px; height: 3px;
+      background: var(--stone);
+      border-radius: 50%;
+    }
+    .icon-instagram:hover { border-color: var(--warm-brown); }
+    .footer-bottom {
+      border-top: 1px solid rgba(107,79,58,0.08);
+      padding: 20px 0;
+      font-size: 12px;
+      color: var(--stone);
+      text-align: center;
+      letter-spacing: 0.04em;
+    }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { opacity: 0; }
+    .fade-up.visible { animation: fadeUp 0.7s ease forwards; }
+    .fade-up:nth-child(2).visible { animation-delay: 0.1s; }
+    .fade-up:nth-child(3).visible { animation-delay: 0.2s; }
+    .fade-up:nth-child(4).visible { animation-delay: 0.3s; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      nav { padding: 0 24px; }
+      .nav-links, .btn-nav { display: none; }
+      .hamburger { display: flex; }
+
+      #home { grid-template-columns: 1fr; }
+      .hero-left { padding: 48px 32px; order: 2; }
+      .hero-right { height: 50vh; order: 1; }
+
+      #about { grid-template-columns: 1fr; }
+      .about-left { height: 50vh; }
+      .about-right { padding: 56px 32px; }
+
+      #services { padding: 72px 24px; }
+      .services-grid { grid-template-columns: 1fr; gap: 20px; }
+
+      #contact { grid-template-columns: 1fr; }
+      .contact-left { padding: 60px 32px 40px; }
+      .contact-right { padding: 0 24px 60px; }
+      .form-card { padding: 32px 24px; }
+      .form-grid { grid-template-columns: 1fr; }
+
+      footer { padding: 40px 24px 0; }
+      .footer-main { flex-direction: column; gap: 24px; text-align: center; }
+      .footer-nav { justify-content: center; }
+      .footer-right { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── NAV ─── -->
+<nav id="main-nav">
+  <a href="#home" class="logo-lockup">
+    <span class="logo-name">Summer <span class="amp">&amp;</span> Beyond</span>
+    <span class="logo-sub">Travel</span>
+  </a>
+  <div class="nav-right">
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#services">Services</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <a href="#contact" class="btn-nav">Plan Your Trip</a>
+  </div>
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#about" onclick="closeMobile()">About</a>
+  <a href="#services" onclick="closeMobile()">Services</a>
+  <a href="#contact" onclick="closeMobile()">Contact</a>
+  <a href="#contact" class="btn-primary" style="text-align:center;" onclick="closeMobile()">Plan Your Trip</a>
+</div>
+
+<!-- ─── HERO ─── -->
+<section id="home">
+  <div class="hero-left">
+    <p class="eyebrow fade-up">Luxury Travel Advisory</p>
+    <h1 class="hero-headline fade-up">The trip you've always imagined,&nbsp;finally done right.</h1>
+    <p class="hero-subline fade-up">We know what to look for — and what to avoid. Great travel comes down to judgment, not just a list.</p>
+    <div class="hero-ctas fade-up">
+      <a href="#contact" class="btn-primary">Plan Your Trip</a>
+      <a href="#services" class="btn-ghost">Our Services</a>
+    </div>
+  </div>
+  <div class="hero-right">
+    <img
+      src="https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=1200&q=80"
+      alt="Greek island luxury resort pool overlooking the sea"
+      loading="eager"
+    />
+  </div>
+</section>
+
+<!-- ─── ABOUT ─── -->
+<section id="about">
+  <div class="about-left">
+    <img
+      src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=900&q=80"
+      alt="Beautiful Mediterranean coastline"
+      loading="lazy"
+    />
+  </div>
+  <div class="about-right">
+    <p class="section-label fade-up" style="color: var(--dusty-pink);">About Hallie</p>
+    <h2 class="section-headline fade-up">I plan trips the way I wish someone had planned mine.</h2>
+    <div class="about-body">
+      <p class="fade-up">I've been the person who showed up to a neighborhood that looked perfect online and wasted a full day recalibrating. I've booked the most-reviewed restaurant and left wondering what the fuss was about. And after traveling internationally with a 4-month-old, I know firsthand — the right hotel room isn't a luxury, it's the difference between a good trip and a great one.</p>
+      <p class="fade-up">I bring taste, refinement, and hard-won judgment to every itinerary. We know what to look for — and what to avoid. Great travel comes down to discernment, not just a list. Every hour away from home is precious. I plan like I know that, because I do.</p>
+    </div>
+    <p class="about-signature fade-up">— Hallie Lenahan, Founder</p>
+  </div>
+</section>
+
+<!-- ─── SERVICES ─── -->
+<section id="services">
+  <div class="services-header">
+    <p class="section-label fade-up">WHAT WE OFFER</p>
+    <h2 class="section-headline fade-up">Three ways to work with us.</h2>
+    <p class="services-subline fade-up">Start wherever you are. We meet you there.</p>
+  </div>
+  <div class="services-grid">
+    <!-- Tier 1 -->
+    <div class="service-card fade-up">
+      <p class="card-tag sage">START HERE</p>
+      <div class="icon-arrow"></div>
+      <h3 class="card-title">Itinerary Starter</h3>
+      <p class="card-desc">Fill out our trip inquiry form and we'll come back with a high-level itinerary concept — destinations, pacing, the right style of property for your group. No commitment. Love the direction? That's where Tier 2 comes in.</p>
+      <a href="#contact" class="btn-card">Get Started — It's Free</a>
+    </div>
+    <!-- Tier 2 -->
+    <div class="service-card elevated fade-up">
+      <p class="card-tag pink">MOST POPULAR</p>
+      <div class="icon-compass"></div>
+      <h3 class="card-title">Design &amp; Curation</h3>
+      <p class="card-desc">Whether you have a destination in mind or just a feeling, we design and curate the full trip. Hotels, restaurants, day-by-day flow — refined until it's exactly right. No matter where you are in the planning process, we can step in.</p>
+      <a href="#contact" class="btn-card">Start Planning</a>
+    </div>
+    <!-- Tier 3 -->
+    <div class="service-card fade-up">
+      <p class="card-tag yellow">WHITE GLOVE</p>
+      <div class="icon-star"></div>
+      <h3 class="card-title">Full Service + Booking</h3>
+      <p class="card-desc">Everything in Tier 2, plus we handle all bookings. And because of our relationships with properties, our clients enjoy VIP treatment — room upgrades, resort credits, early check-in and late checkout when available. The trip is better when booked through us.</p>
+      <a href="#contact" class="btn-card">Book With Us</a>
+    </div>
+  </div>
+</section>
+
+<!-- ─── CONTACT ─── -->
+<section id="contact">
+  <div class="contact-left">
+    <h2 class="contact-headline fade-up">Tell us about your trip.</h2>
+    <p class="contact-subline fade-up">Fill out the form and Hallie will be in touch within 48 hours.</p>
+    <ul class="expect-list">
+      <li class="fade-up">Personal response from Hallie — not a template</li>
+      <li class="fade-up">A conversation, not a sales pitch</li>
+      <li class="fade-up">Honest advice, even if that means telling you to book it yourself</li>
+    </ul>
+  </div>
+  <div class="contact-right">
+    <div class="form-card">
+      <form action="#" method="POST">
+        <div class="form-grid">
+
+          <div class="form-field">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" placeholder="Your name" required />
+          </div>
+
+          <div class="form-field">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="your@email.com" required />
+          </div>
+
+          <div class="form-field">
+            <label for="home-city">Departing From</label>
+            <input type="text" id="home-city" name="home_city" placeholder="City or airport (e.g. Boston, BOS)" />
+          </div>
+
+          <div class="form-field">
+            <label for="destination">Destination</label>
+            <input type="text" id="destination" name="destination" placeholder='Where to, or "Not sure yet"' />
+          </div>
+
+          <div class="form-field">
+            <label>Travel Dates</label>
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+              <div style="flex:1; min-width:120px;">
+                <label for="date-from" style="font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--stone); margin-bottom:4px; display:block;">From</label>
+                <input type="date" id="date-from" name="date_from" />
+              </div>
+              <div style="flex:1; min-width:120px;">
+                <label for="date-to" style="font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--stone); margin-bottom:4px; display:block;">To</label>
+                <input type="date" id="date-to" name="date_to" />
+              </div>
+            </div>
+            <p style="font-size:11px; color:var(--stone); margin-top:6px;">Flexible on dates? No worries — just give us your best guess.</p>
+          </div>
+
+          <div class="form-field full">
+            <label for="who">Who's Traveling?</label>
+            <select id="who" name="who">
+              <option value="" disabled selected>Select travelers</option>
+              <option>Just us (couple)</option>
+              <option>Family with young kids</option>
+              <option>Family with older kids</option>
+              <option>Girls trip</option>
+              <option>Solo</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div class="form-field full">
+            <label>Trip Style</label>
+            <div class="checkbox-group">
+              <label class="checkbox-item"><input type="checkbox" name="style" value="Beach" /> Beach</label>
+              <label class="checkbox-item"><input type="checkbox" name="style" value="Culture" /> Culture</label>
+              <label class="checkbox-item"><input type="checkbox" name="style" value="Adventure" /> Adventure</label>
+              <label class="checkbox-item"><input type="checkbox" name="style" value="Food & Wine" /> Food &amp; Wine</label>
+              <label class="checkbox-item"><input type="checkbox" name="style" value="Golf" /> Golf</label>
+              <label class="checkbox-item"><input type="checkbox" name="style" value="Wellness" /> Wellness</label>
+              <label class="checkbox-item"><input type="checkbox" name="style" value="Mix of everything" /> Mix of everything</label>
+            </div>
+          </div>
+
+          <div class="form-field full">
+            <label for="budget">How do you like to travel?</label>
+            <select id="budget" name="budget">
+              <option value="" disabled selected>Tell us your style</option>
+              <option>Five stars, full stop — money isn't the constraint</option>
+              <option>Luxury where it counts, value where it doesn't</option>
+              <option>Chic and considered — great value matters to me</option>
+              <option>Working with a set budget, make it count</option>
+              <option>Prefer to discuss</option>
+            </select>
+          </div>
+
+          <div class="form-field full">
+            <label for="notes">Anything Specific in Mind?</label>
+            <textarea id="notes" name="notes" placeholder="Dream experiences, must-haves, things you want to avoid…"></textarea>
+          </div>
+
+          <div class="full">
+            <button type="submit" class="btn-submit">Send My Inquiry</button>
+          </div>
+
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  <div class="footer-main">
+    <a href="#home" class="logo-lockup">
+      <span class="logo-name" style="font-size:17px;">Summer <span class="amp">&amp;</span> Beyond</span>
+      <span class="logo-sub">Travel</span>
+    </a>
+    <ul class="footer-nav">
+      <li><a href="#about">About</a></li>
+      <li><a href="#services">Services</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <div class="footer-right">
+      <span class="footer-domain">summerandbeyondtravel.com</span>
+      <div class="icon-instagram" title="Instagram"></div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    &copy; 2025 Summer &amp; Beyond Travel. All rights reserved.
+  </div>
+</footer>
+
+<script>
+  // Sticky nav border on scroll
+  const nav = document.getElementById('main-nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 10);
+  });
+
+  // Hamburger menu
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobile-menu');
+  hamburger.addEventListener('click', () => {
+    mobileMenu.classList.toggle('open');
+  });
+  function closeMobile() {
+    mobileMenu.classList.remove('open');
+  }
+
+  // Intersection Observer for fade-up animations
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
