@@ -823,7 +823,7 @@
   </div>
   <div class="contact-right">
     <div class="form-card">
-      <form action="/api/submit" method="POST" enctype="application/x-www-form-urlencoded">
+      <form id="inquiry-form" action="/api/submit" method="POST" enctype="application/x-www-form-urlencoded">
         <div class="form-grid">
 
           <div class="form-field">
@@ -999,6 +999,43 @@
         homeSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
     }
+  }
+
+  // ── AJAX Form Submission ──────────────────────────────────────────────────
+  const inquiryForm = document.getElementById('inquiry-form');
+  if (inquiryForm) {
+    inquiryForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = inquiryForm.querySelector('.btn-submit');
+      btn.textContent = 'Sending…';
+      btn.disabled = true;
+
+      try {
+        const formData = new FormData(inquiryForm);
+        const body = new URLSearchParams(formData).toString();
+        const res = await fetch('/api/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body
+        });
+
+        // Show success message in contact section
+        const formCard = inquiryForm.closest('.contact-form-card') || inquiryForm.parentElement;
+        formCard.innerHTML = `
+          <div style="padding:48px 32px; text-align:center;">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:20px;">
+              <circle cx="24" cy="24" r="22" stroke="#A3BA9E" stroke-width="2"/>
+              <path d="M14 24.5L21 31.5L34 18.5" stroke="#A3BA9E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <p style="font-family:'Forum',serif; font-size:24px; color:#6B4F3A; margin:0 0 10px;">Your inquiry is in.</p>
+            <p style="font-family:'DM Sans',sans-serif; font-size:15px; color:#A09B99; margin:0;">Hallie will be in touch within 48 hours.</p>
+          </div>`;
+      } catch (err) {
+        btn.textContent = 'Send My Inquiry';
+        btn.disabled = false;
+        alert('Something went wrong. Please try again or email hallie@summerandbeyondtravel.com directly.');
+      }
+    });
   }
 </script>
 
