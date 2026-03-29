@@ -155,7 +155,7 @@ async function triggerItineraryGeneration(formData) {
     JSON.stringify(formData, null, 2),
   ].join('\n');
 
-  const res = await fetch(`https://api.agentmail.to/v0/inboxes/${encodeURIComponent(AGENTMAIL_INBOX)}/messages`, {
+  const res = await fetch(`https://api.agentmail.to/v0/inboxes/${encodeURIComponent(AGENTMAIL_INBOX)}/messages/send`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${AGENTMAIL_API_KEY}`,
