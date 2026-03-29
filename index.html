@@ -770,6 +770,29 @@
     max-width: 580px;
   }
 
+  .calendar-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .cal-nav-btn {
+    background: none;
+    border: 1px solid rgba(107,79,58,0.2);
+    border-radius: 4px;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    font-size: 20px;
+    color: var(--warm-brown);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: background 0.15s;
+  }
+  .cal-nav-btn:hover { background: var(--cream); }
+
   .calendar-months {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1011,6 +1034,10 @@
 
             <!-- Flyout calendar -->
             <div class="calendar-flyout" id="calendar-flyout" style="display:none;">
+              <div class="calendar-nav">
+                <button type="button" class="cal-nav-btn" id="cal-prev">&#8249;</button>
+                <button type="button" class="cal-nav-btn" id="cal-next">&#8250;</button>
+              </div>
               <!-- Two month calendars side by side -->
               <div class="calendar-months">
                 <div class="calendar-month" id="cal-month-1"></div>
@@ -1220,6 +1247,9 @@
     const today = new Date();
     today.setHours(0,0,0,0);
 
+    let viewYear = today.getFullYear();
+    let viewMonth = today.getMonth();
+
     function formatDate(d) {
       return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     }
@@ -1262,12 +1292,14 @@
     }
 
     function renderCalendar() {
-      const now = new Date();
       const m1 = document.getElementById('cal-month-1');
       const m2 = document.getElementById('cal-month-2');
-      renderMonth(m1, now.getFullYear(), now.getMonth());
-      const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-      renderMonth(m2, next.getFullYear(), next.getMonth());
+      renderMonth(m1, viewYear, viewMonth);
+      // Calculate next month
+      let nextMonth = viewMonth + 1;
+      let nextYear = viewYear;
+      if (nextMonth > 11) { nextMonth = 0; nextYear++; }
+      renderMonth(m2, nextYear, nextMonth);
     }
 
     function updateDisplay() {
@@ -1293,13 +1325,18 @@
         endDate = null;
         selecting = 'end';
         hint.textContent = 'Now select your return date';
+        updateDisplay();
+        // DO NOT close flyout here — keep it open for end date selection
       } else {
         endDate = date;
         selecting = 'start';
         hint.textContent = 'Dates selected ✓';
-        setTimeout(() => { flyout.style.display = 'none'; display.classList.remove('active'); }, 400);
+        updateDisplay();
+        setTimeout(() => { 
+          flyout.style.display = 'none'; 
+          display.classList.remove('active'); 
+        }, 400);
       }
-      updateDisplay();
     }
 
     display.addEventListener('click', (e) => {
@@ -1321,6 +1358,24 @@
       startDate = null; endDate = null; selecting = 'start';
       hint.textContent = 'Select your departure date';
       updateDisplay();
+    });
+
+    document.getElementById('cal-prev').addEventListener('click', (e) => {
+      e.stopPropagation();
+      viewMonth--;
+      if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+      // Don't go before current month
+      const minDate = new Date(today.getFullYear(), today.getMonth(), 1);
+      const viewDate = new Date(viewYear, viewMonth, 1);
+      if (viewDate < minDate) { viewMonth = today.getMonth(); viewYear = today.getFullYear(); }
+      renderCalendar();
+    });
+
+    document.getElementById('cal-next').addEventListener('click', (e) => {
+      e.stopPropagation();
+      viewMonth++;
+      if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+      renderCalendar();
     });
 
     // Flexible toggle
