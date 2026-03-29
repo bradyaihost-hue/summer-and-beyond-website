@@ -781,14 +781,17 @@
     background: none;
     border: 1px solid rgba(107,79,58,0.2);
     border-radius: 4px;
-    width: 32px;
+    width: auto;
     height: 32px;
+    padding: 0 12px;
     cursor: pointer;
-    font-size: 20px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
     color: var(--warm-brown);
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
+    white-space: nowrap;
     line-height: 1;
     transition: background 0.15s;
   }
@@ -1036,9 +1039,9 @@
             <!-- Flyout calendar -->
             <div class="calendar-flyout" id="calendar-flyout" style="display:none;">
               <div class="calendar-nav">
-                <button type="button" class="cal-nav-btn" id="cal-prev">&#8249; Prev</button>
-                <span id="cal-nav-label" style="font-family:'DM Sans',sans-serif;font-size:12px;color:var(--stone);letter-spacing:0.08em;"></span>
-                <button type="button" class="cal-nav-btn" id="cal-next">Next &#8250;</button>
+                <button type="button" class="cal-nav-btn" id="cal-prev" style="white-space:nowrap;">&#8249;&nbsp;Prev</button>
+                <span id="cal-nav-label" style="font-family:'DM Sans',sans-serif;font-size:12px;color:var(--stone);letter-spacing:0.08em;text-align:center;"></span>
+                <button type="button" class="cal-nav-btn" id="cal-next" style="white-space:nowrap;">Next&nbsp;&#8250;</button>
               </div>
               <!-- Two month calendars side by side -->
               <div class="calendar-months">
