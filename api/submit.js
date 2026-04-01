@@ -193,6 +193,16 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Failed to parse form data' });
   }
 
+  // Honeypot check — bots fill hidden fields, real users don't
+  if (formData.website) {
+    return res.writeHead(303, { Location: '/?submitted=true' }).end();
+  }
+
+  // Required fields check
+  if (!formData.name?.trim() && !formData.destination?.trim()) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
   console.log('New inquiry from:', formData.name, '→', formData.destination);
 
   // ── 1. Send intake notification to Hallie via Resend ──────────────────────
