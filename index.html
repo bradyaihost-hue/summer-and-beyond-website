@@ -741,6 +741,10 @@
       .footer-main { flex-direction: column; gap: 24px; text-align: center; }
       .footer-nav { justify-content: center; }
       .footer-right { justify-content: center; }
+
+      #about-anna { padding: 48px 24px !important; }
+      .anna-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+      .anna-grid > div:last-child { height: 300px !important; }
     }
 
   /* Date Range Picker */
@@ -1010,7 +1014,7 @@
 
 <!-- ─── ABOUT ANNA ─── -->
 <section id="about-anna" style="background: #FAF7F2; padding: 80px;">
-  <div style="max-width: 1120px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;">
+  <div class="anna-grid" style="max-width: 1120px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;">
     <div>
       <p class="section-label fade-up" style="color: var(--dusty-pink);">About</p>
       <h2 class="section-headline fade-up">Anna Bradlee, <span style="font-style:italic;">Head of Partnerships</span></h2>
