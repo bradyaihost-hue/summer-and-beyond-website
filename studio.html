@@ -171,6 +171,45 @@
     }
     .scheme-swatch .swatch-inner span { display: block; }
 
+    /* ── Mobile Layout ── */
+    @media (max-width: 768px) {
+      #editor-view { flex-direction: column; overflow-y: auto; }
+
+      #template-picker {
+        width: 100%; height: auto; flex-shrink: 0;
+        border-right: none; border-bottom: 1px solid rgba(107,79,58,0.1);
+        padding: 10px 12px 6px;
+        overflow-x: auto; overflow-y: hidden;
+        display: block;
+      }
+      .picker-label { display: none; }
+      #tpl-scroll {
+        display: flex; flex-direction: row; gap: 6px;
+        overflow-x: auto; padding-bottom: 4px; white-space: nowrap;
+      }
+      #template-picker .tpl-card {
+        flex-shrink: 0; padding: 7px 12px; margin-bottom: 0;
+        white-space: nowrap; display: inline-block;
+      }
+      #template-picker .tpl-type { display: none; }
+
+      #preview-col { display: none; }
+
+      #form-col {
+        width: 100%; border-left: none;
+        border-top: 1px solid rgba(107,79,58,0.1);
+        flex: 1; padding: 16px;
+      }
+
+      header .brand span { display: none; }
+      header { padding: 0 16px; }
+
+      .scheme-swatches { gap: 12px; }
+      .scheme-swatch { width: 42px; height: 42px; }
+
+      .lib-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+    }
+
     /* ── Library ── */
     #library-view h2 { font-family: 'Forum', serif; font-size: 24px; color: var(--warm-brown); margin-bottom: 24px; }
     .lib-empty { font-size: 14px; color: var(--stone); text-align: center; margin-top: 60px; }
@@ -313,6 +352,7 @@
     <!-- Template Picker -->
     <div id="template-picker">
       <div class="picker-label">Templates</div>
+      <div id="tpl-scroll">
       <div class="tpl-card active" data-tpl="g1" onclick="selectTemplate('g1')">
         <div class="tpl-name">Destination Hero</div>
         <div class="tpl-type">Grid Post</div>
@@ -349,6 +389,7 @@
         <div class="tpl-name">Hotel Feature</div>
         <div class="tpl-type">Story</div>
       </div>
+      </div><!-- end tpl-scroll -->
     </div>
 
     <!-- Live Preview -->
