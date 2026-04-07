@@ -725,20 +725,49 @@ async function downloadPNG() {
   btn.disabled = true; btn.textContent = 'Generating...';
   try {
     const tpl = TEMPLATES[activeTemplate];
-    const [tw, th] = tpl.size;                      // design/preview dimensions
-    const [ew, eh] = tpl.export || [tw*3, th*3];    // export dimensions (IG spec)
-    const exportScale = ew / tw;                     // scale factor: e.g. 1080/340 ≈ 3.18
-    const container = document.getElementById('export-container');
-    container.innerHTML = applyScheme(buildTemplateHTML(activeTemplate, 1));
-    const el = container.firstElementChild;
-    el.style.width = tw + 'px'; el.style.height = th + 'px';
-    await new Promise(r => setTimeout(r, 300));
-    const canvas = await html2canvas(el, { scale: exportScale, useCORS: true, allowTaint: true, backgroundColor: null, logging: false });
+    const [tw, th] = tpl.size;
+    const [ew, eh] = tpl.export || [tw * 3, th * 3];
+
+    // Build template HTML at native export resolution (no upscaling)
+    const exportScale = ew / tw;
+    const html = applyScheme(buildTemplateHTML(activeTemplate, exportScale));
+
+    // Try server-side Playwright export first (crisp, no pixelation)
+    let useServer = true;
+    let blob;
+    try {
+      const resp = await fetch('/api/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ html, width: ew, height: eh })
+      });
+      if (resp.ok) {
+        blob = await resp.blob();
+      } else {
+        useServer = false;
+      }
+    } catch {
+      useServer = false;
+    }
+
+    if (!useServer) {
+      // Fallback: html2canvas at native size (still sharp since template is already at ew/eh px)
+      const container = document.getElementById('export-container');
+      container.innerHTML = html;
+      const el = container.firstElementChild;
+      el.style.width = ew + 'px'; el.style.height = eh + 'px';
+      await new Promise(r => setTimeout(r, 400));
+      const canvas = await html2canvas(el, { scale: 1, useCORS: true, allowTaint: true, backgroundColor: null, logging: false });
+      container.innerHTML = '';
+      blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+    }
+
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.download = `sb-${activeTemplate}-${Date.now()}.png`;
-    link.href = canvas.toDataURL('image/png');
+    link.href = url;
     link.click();
-    container.innerHTML = '';
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   } catch(e) { alert('Export failed: ' + e.message); }
   btn.disabled = false; btn.textContent = 'Download PNG';
 }
