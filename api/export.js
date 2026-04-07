@@ -1,7 +1,16 @@
-// api/export.js — Server-side PNG export via Playwright
+// api/export.js — Server-side PNG export via Playwright + Sparticuz Chromium
 // Renders template HTML at native resolution (no upscaling, no pixelation)
 
-const { chromium } = require('playwright');
+let chromium, playwright;
+try {
+  // Vercel/Lambda: use sparticuz chromium
+  chromium = require('@sparticuz/chromium');
+  playwright = require('playwright-core');
+} catch {
+  // Local dev fallback
+  playwright = require('playwright');
+  chromium = null;
+}
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -49,7 +58,15 @@ body{width:${designW}px;height:${designH}px;overflow:hidden;}
 
   let browser;
   try {
-    browser = await chromium.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const launchOptions = chromium
+      ? {
+          args: chromium.args,
+          executablePath: await chromium.executablePath(),
+          headless: chromium.headless,
+        }
+      : { args: ['--no-sandbox', '--disable-setuid-sandbox'] };
+
+    browser = await (playwright.chromium || playwright).launch(launchOptions);
     const context = await browser.newContext({
       viewport: { width: designW, height: designH },
       deviceScaleFactor

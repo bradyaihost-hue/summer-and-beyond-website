@@ -19,7 +19,9 @@
   },
   "homepage": "https://github.com/bradyaihost-hue/summer-and-beyond-website#readme",
   "dependencies": {
+    "@sparticuz/chromium": "^143.0.4",
     "pg": "^8.20.0",
-    "playwright": "^1.59.1"
+    "playwright": "^1.59.1",
+    "playwright-core": "^1.59.1"
   }
 }

@@ -3,7 +3,7 @@
   "functions": {
     "api/submit.js": { "maxDuration": 15 },
     "api/posts.js": { "maxDuration": 15 },
-    "api/export.js": { "maxDuration": 30 }
+    "api/export.js": { "maxDuration": 30, "memory": 1024 }
   },
   "rewrites": [
     { "source": "/api/posts/:id", "destination": "/api/posts" },
