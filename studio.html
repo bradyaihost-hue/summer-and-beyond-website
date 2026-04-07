@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>S&B Social Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Forum&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    /* ── Brand Tokens ── */
+    :root {
+      --cream: #F5F0E8;
+      --sage: #A3BA9E;
+      --dusty-pink: #D4A5A0;
+      --warm-brown: #6B4F3A;
+      --stone: #A09B99;
+      --pale-bg: #EDEBE5;
+      --panel-bg: #FDFAF5;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Password Gate ── */
+    #gate {
+      position: fixed; inset: 0; z-index: 9999;
+      background: var(--cream);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 8px;
+    }
+    #gate h1 { font-family: 'Forum', serif; font-size: 32px; color: var(--warm-brown); letter-spacing: 0.04em; }
+    #gate p { font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--stone); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 24px; }
+    #gate input {
+      width: 260px; padding: 12px 16px;
+      border: 1px solid rgba(107,79,58,0.25); border-radius: 4px;
+      font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--warm-brown);
+      background: white; outline: none;
+    }
+    #gate input:focus { border-color: var(--sage); }
+    #gate button {
+      width: 260px; padding: 12px;
+      background: var(--sage); color: var(--cream);
+      border: none; border-radius: 4px; cursor: pointer;
+      font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+      letter-spacing: 0.08em; text-transform: uppercase; margin-top: 4px;
+    }
+    #gate button:hover { background: #8fa894; }
+    #gate-error { color: var(--dusty-pink); font-size: 12px; font-family: 'DM Sans', sans-serif; min-height: 18px; }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
+    .shake { animation: shake 0.35s ease; }
+
+    /* ── App Shell ── */
+    body { font-family: 'DM Sans', sans-serif; background: var(--pale-bg); color: var(--warm-brown); }
+    #app { display: none; height: 100vh; flex-direction: column; }
+    #app.visible { display: flex; }
+
+    /* ── Header ── */
+    header {
+      background: white; border-bottom: 1px solid rgba(163,186,158,0.4);
+      padding: 0 24px; height: 56px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    header .brand { font-family: 'Forum', serif; font-size: 20px; color: var(--warm-brown); letter-spacing: 0.04em; }
+    header .brand span { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 300; color: var(--stone); letter-spacing: 0.1em; text-transform: uppercase; margin-left: 12px; }
+    .tab-nav { display: flex; gap: 4px; }
+    .tab-btn {
+      padding: 6px 18px; border: none; background: none; cursor: pointer;
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+      color: var(--stone); letter-spacing: 0.06em; text-transform: uppercase;
+      border-bottom: 2px solid transparent; transition: all 0.2s;
+    }
+    .tab-btn.active { color: var(--warm-brown); border-bottom-color: var(--sage); }
+
+    /* ── Editor Layout ── */
+    #editor-view { display: flex; flex: 1; overflow: hidden; }
+    #library-view { display: none; flex: 1; overflow-y: auto; padding: 32px; }
+
+    /* Left: Template Picker */
+    #template-picker {
+      width: 180px; flex-shrink: 0;
+      background: var(--panel-bg); border-right: 1px solid rgba(107,79,58,0.1);
+      overflow-y: auto; padding: 16px 12px;
+    }
+    .picker-label {
+      font-size: 9px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--stone); margin-bottom: 12px; padding-bottom: 8px;
+      border-bottom: 1px solid rgba(107,79,58,0.1);
+    }
+    .tpl-card {
+      padding: 10px 12px; border-radius: 6px; cursor: pointer; margin-bottom: 4px;
+      border: 2px solid transparent; transition: all 0.15s;
+    }
+    .tpl-card:hover { background: rgba(163,186,158,0.15); }
+    .tpl-card.active { border-color: var(--sage); background: rgba(163,186,158,0.12); }
+    .tpl-card .tpl-name { font-size: 11px; font-weight: 500; color: var(--warm-brown); }
+    .tpl-card .tpl-type { font-size: 9px; color: var(--stone); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 2px; }
+
+    /* Center: Preview */
+    #preview-col {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: var(--pale-bg); overflow: hidden; padding: 24px;
+    }
+    #preview-wrap {
+      position: relative; transform-origin: center center;
+    }
+    #preview-label {
+      font-size: 10px; color: var(--stone); text-transform: uppercase;
+      letter-spacing: 0.12em; margin-top: 12px; text-align: center;
+    }
+
+    /* Right: Form */
+    #form-col {
+      width: 280px; flex-shrink: 0;
+      background: var(--panel-bg); border-left: 1px solid rgba(107,79,58,0.1);
+      overflow-y: auto; padding: 20px;
+    }
+    .form-section-title {
+      font-size: 9px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--stone); margin-bottom: 14px; padding-bottom: 8px;
+      border-bottom: 1px solid rgba(107,79,58,0.1);
+    }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 10px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--stone); margin-bottom: 5px; }
+    .field input, .field textarea {
+      width: 100%; padding: 8px 10px;
+      border: 1px solid rgba(107,79,58,0.2); border-radius: 4px;
+      font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--warm-brown);
+      background: white; outline: none; resize: vertical;
+    }
+    .field input:focus, .field textarea:focus { border-color: var(--sage); }
+    .field textarea { min-height: 72px; }
+    .photo-preview { width: 100%; height: 80px; object-fit: cover; border-radius: 4px; margin-top: 6px; display: none; }
+
+    .btn-primary {
+      width: 100%; padding: 11px; margin-top: 8px;
+      background: var(--sage); color: var(--cream); border: none; border-radius: 4px;
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+      letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
+    }
+    .btn-primary:hover { background: #8fa894; }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-secondary {
+      width: 100%; padding: 10px; margin-top: 6px;
+      background: transparent; color: var(--warm-brown);
+      border: 1px solid rgba(107,79,58,0.35); border-radius: 4px;
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+      letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
+    }
+    .btn-secondary:hover { background: rgba(107,79,58,0.06); }
+
+    /* ── Color Scheme Picker ── */
+    .scheme-picker { margin-bottom: 18px; }
+    .scheme-picker .picker-label-sm {
+      font-size: 9px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--stone); margin-bottom: 8px; display: block;
+    }
+    .scheme-swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+    .scheme-swatch {
+      width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+      border: 2px solid transparent; transition: all 0.15s; position: relative;
+      flex-shrink: 0;
+    }
+    .scheme-swatch.active { border-color: var(--warm-brown); transform: scale(1.12); }
+    .scheme-swatch:hover { transform: scale(1.1); }
+    .scheme-swatch .swatch-inner {
+      width: 100%; height: 100%; border-radius: 50%; overflow: hidden;
+      display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+    }
+    .scheme-swatch .swatch-inner span { display: block; }
+
+    /* ── Library ── */
+    #library-view h2 { font-family: 'Forum', serif; font-size: 24px; color: var(--warm-brown); margin-bottom: 24px; }
+    .lib-empty { font-size: 14px; color: var(--stone); text-align: center; margin-top: 60px; }
+    .lib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+    .lib-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(107,79,58,0.1); }
+    .lib-card img { width: 100%; height: 160px; object-fit: cover; display: block; background: var(--pale-bg); }
+    .lib-card-body { padding: 12px 14px 14px; }
+    .lib-card-title { font-size: 13px; font-weight: 500; color: var(--warm-brown); margin-bottom: 3px; }
+    .lib-card-meta { font-size: 10px; color: var(--stone); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
+    .lib-card-actions { display: flex; gap: 6px; }
+    .lib-btn {
+      flex: 1; padding: 6px; border: none; border-radius: 4px; cursor: pointer;
+      font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .lib-btn-edit { background: rgba(163,186,158,0.2); color: var(--warm-brown); }
+    .lib-btn-dl { background: var(--sage); color: var(--cream); }
+    .lib-btn-del { background: rgba(212,165,160,0.2); color: var(--dusty-pink); }
+    .lib-btn:hover { opacity: 0.8; }
+
+    /* ── Template Styles (copied from canva-templates.html) ── */
+    .g1 { width: 340px; height: 340px; background: var(--warm-brown); position: relative; overflow: hidden; }
+    .g1 .photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .g1 .overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(107,79,58,0.72) 0%, transparent 55%); }
+    .g1 .content { position: absolute; bottom: 28px; left: 28px; right: 28px; }
+    .g1 .eyebrow { font-size: 9px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(245,240,232,0.7); margin-bottom: 6px; }
+    .g1 .headline { font-family: 'Forum', serif; font-size: 30px; line-height: 1.1; color: var(--cream); margin-bottom: 10px; }
+    .g1 .tagline { font-size: 10px; font-weight: 300; letter-spacing: 0.06em; color: rgba(245,240,232,0.75); }
+    .g1 .logo-mark { position: absolute; top: 20px; right: 20px; font-family: 'Forum', serif; font-size: 11px; color: rgba(245,240,232,0.6); letter-spacing: 0.08em; }
+    .g1 .ph { position: absolute; inset: 0; background: rgba(107,79,58,0.3); display: flex; align-items: center; justify-content: center; }
+    .g1 .ph span { font-size: 9px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(163,186,158,0.8); }
+
+    .g2 { width: 340px; height: 340px; background: var(--cream); display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; border: 1px solid rgba(107,79,58,0.14); }
+    .g2 .img-side { width: 100%; height: 100%; background: rgba(163,186,158,0.2); position: relative; overflow: hidden; }
+    .g2 .img-side img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .g2 .img-side .ph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+    .g2 .img-side .ph span { font-size: 9px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sage); writing-mode: vertical-rl; }
+    .g2 .text-side { padding: 28px 20px; display: flex; flex-direction: column; justify-content: space-between; }
+    .g2 .eyebrow { font-size: 8px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--sage); margin-bottom: 10px; }
+    .g2 .hotel-name { font-family: 'Forum', serif; font-size: 20px; line-height: 1.15; color: var(--warm-brown); margin-bottom: 8px; }
+    .g2 .location { font-size: 9px; font-weight: 400; letter-spacing: 0.08em; color: var(--stone); }
+    .g2 .detail-line { font-size: 9px; font-weight: 300; line-height: 1.7; color: var(--warm-brown); opacity: 0.7; margin-top: 14px; }
+    .g2 .bottom { border-top: 1px solid rgba(107,79,58,0.1); padding-top: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .g2 .cta { font-size: 8px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--warm-brown); }
+    .g2 .logo-mark { font-family: 'Forum', serif; font-size: 9px; color: var(--stone); letter-spacing: 0.08em; }
+
+    .g2b { width: 340px; height: 340px; background: var(--cream); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 28px 24px; position: relative; border: 1px solid rgba(107,79,58,0.1); }
+    .g2b .circle-wrap { width: 120px; height: 120px; border-radius: 50%; overflow: hidden; background: rgba(163,186,158,0.2); margin-bottom: 16px; flex-shrink: 0; position: relative; }
+    .g2b .circle-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .g2b .circle-wrap .ph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+    .g2b .circle-wrap .ph span { font-size: 8px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--sage); text-align: center; padding: 8px; }
+    .g2b .person-name { font-family: 'Forum', serif; font-size: 22px; color: var(--warm-brown); text-align: center; margin-bottom: 5px; }
+    .g2b .person-title { font-size: 10px; font-weight: 400; letter-spacing: 0.08em; color: var(--stone); text-align: center; margin-bottom: 12px; }
+    .g2b .rule { width: 28px; height: 1px; background: var(--sage); margin: 0 auto 12px; }
+    .g2b .person-quote { font-family: 'Forum', serif; font-size: 13px; line-height: 1.5; text-align: center; color: var(--warm-brown); opacity: 0.8; }
+    .g2b .bottom-brand { position: absolute; bottom: 16px; font-family: 'Forum', serif; font-size: 9px; color: var(--stone); letter-spacing: 0.06em; }
+
+    .g3 { width: 340px; height: 340px; background: var(--sage); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 44px 40px; position: relative; }
+    .g3::before { content: ''; position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px; border: 1px solid rgba(245,240,232,0.25); pointer-events: none; }
+    .g3 .rule { width: 28px; height: 1px; background: rgba(245,240,232,0.5); margin: 0 auto 18px; }
+    .g3 .quote { font-family: 'Forum', serif; font-size: 20px; line-height: 1.45; text-align: center; color: var(--cream); margin-bottom: 20px; }
+    .g3 .attribution { font-size: 9px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(245,240,232,0.7); text-align: center; }
+    .g3 .logo-mark { position: absolute; bottom: 20px; right: 22px; font-family: 'Forum', serif; font-size: 9px; color: rgba(245,240,232,0.5); letter-spacing: 0.08em; }
+
+    .g4 { width: 340px; height: 340px; background: var(--cream); padding: 32px 28px; position: relative; display: flex; flex-direction: column; justify-content: center; outline: 1.5px solid rgba(107,79,58,0.18); outline-offset: -10px; }
+    .g4::before { content: ''; position: absolute; top: 6px; left: 6px; right: 6px; bottom: 6px; border: 1px solid rgba(107,79,58,0.13); pointer-events: none; }
+    .g4 .accent-line { width: 3px; height: 40px; background: var(--dusty-pink); margin-bottom: 20px; }
+    .g4 .headline { font-family: 'Forum', serif; font-size: 22px; line-height: 1.2; color: var(--warm-brown); margin-bottom: 20px; }
+    .g4 .list-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+    .g4 .num { font-family: 'Forum', serif; font-size: 13px; color: var(--dusty-pink); min-width: 16px; line-height: 1.5; }
+    .g4 .item-text { font-size: 11px; font-weight: 300; line-height: 1.5; color: var(--warm-brown); opacity: 0.85; }
+    .g4 .logo-mark { position: absolute; bottom: 22px; right: 24px; font-family: 'Forum', serif; font-size: 9px; color: var(--stone); letter-spacing: 0.08em; }
+
+    .s1 { width: 200px; height: 356px; background: var(--warm-brown); position: relative; overflow: hidden; }
+    .s1 .photo { position: absolute; top: 0; left: 0; right: 0; height: 62%; object-fit: cover; width: 100%; }
+    .s1 .ph { position: absolute; top: 0; left: 0; right: 0; height: 62%; background: rgba(107,79,58,0.25); display: flex; align-items: center; justify-content: center; }
+    .s1 .ph span { font-size: 8px; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(163,186,158,0.8); }
+    .s1 .logo-mark { position: absolute; top: 14px; left: 16px; font-family: 'Forum', serif; font-size: 9px; color: rgba(245,240,232,0.65); letter-spacing: 0.08em; }
+    .s1 .bottom-panel { position: absolute; bottom: 0; left: 0; right: 0; height: 42%; background: var(--cream); padding: 18px 18px 22px; display: flex; flex-direction: column; justify-content: space-between; }
+    .s1 .eyebrow { font-size: 7px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--sage); }
+    .s1 .headline { font-family: 'Forum', serif; font-size: 22px; line-height: 1.1; color: var(--warm-brown); }
+    .s1 .subtext { font-size: 8px; font-weight: 300; letter-spacing: 0.06em; color: var(--stone); }
+
+    .s2 { width: 200px; height: 356px; background: var(--warm-brown); position: relative; overflow: hidden; }
+    .s2 .photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .s2 .ph { position: absolute; inset: 0; background: rgba(107,79,58,0.3); display: flex; align-items: center; justify-content: center; }
+    .s2 .ph span { font-size: 8px; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(163,186,158,0.8); }
+    .s2 .overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(107,79,58,0.75) 0%, transparent 50%); }
+    .s2 .logo-mark { position: absolute; top: 16px; right: 16px; font-family: 'Forum', serif; font-size: 9px; color: rgba(245,240,232,0.55); letter-spacing: 0.08em; }
+    .s2 .content { position: absolute; bottom: 30px; left: 20px; right: 20px; }
+    .s2 .eyebrow { font-size: 7px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(245,240,232,0.65); margin-bottom: 5px; }
+    .s2 .headline { font-family: 'Forum', serif; font-size: 26px; line-height: 1.1; color: var(--cream); margin-bottom: 12px; }
+    .s2 .cta-pill { display: inline-block; background: var(--sage); color: var(--cream); font-size: 7px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; padding: 5px 12px; border-radius: 20px; }
+
+    .s3 { width: 200px; height: 356px; background: var(--dusty-pink); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px; position: relative; }
+    .s3::before { content: ''; position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px; border: 1px solid rgba(245,240,232,0.3); pointer-events: none; }
+    .s3 .ornament { font-family: 'Forum', serif; font-size: 56px; line-height: 0.8; color: rgba(245,240,232,0.3); margin-bottom: 6px; }
+    .s3 .quote { font-family: 'Forum', serif; font-size: 17px; line-height: 1.5; text-align: center; color: var(--cream); margin-bottom: 18px; }
+    .s3 .rule { width: 22px; height: 1px; background: rgba(245,240,232,0.5); margin: 0 auto 12px; }
+    .s3 .attribution { font-size: 8px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(245,240,232,0.75); text-align: center; }
+    .s3 .logo-mark { position: absolute; bottom: 18px; font-family: 'Forum', serif; font-size: 9px; color: rgba(245,240,232,0.5); letter-spacing: 0.08em; }
+
+    .s4 { width: 200px; height: 356px; background: var(--cream); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+    .s4 .photo-wrap { width: 100%; height: 52%; overflow: hidden; position: relative; }
+    .s4 .photo-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .s4 .photo-wrap .ph { position: absolute; inset: 0; background: rgba(163,186,158,0.2); display: flex; align-items: center; justify-content: center; }
+    .s4 .photo-wrap .ph span { font-size: 8px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--sage); }
+    .s4 .content { flex: 1; padding: 14px 16px 16px; display: flex; flex-direction: column; justify-content: space-between; }
+    .s4 .tag { display: inline-block; background: rgba(163,186,158,0.25); color: var(--sage); font-size: 7px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; padding: 3px 8px; border-radius: 10px; margin-bottom: 8px; width: fit-content; }
+    .s4 .hotel-name { font-family: 'Forum', serif; font-size: 19px; line-height: 1.15; color: var(--warm-brown); margin-bottom: 4px; }
+    .s4 .location { font-size: 8px; letter-spacing: 0.08em; color: var(--stone); margin-bottom: 6px; }
+    .s4 .description { font-size: 9px; font-weight: 300; line-height: 1.7; color: var(--warm-brown); opacity: 0.75; }
+    .s4 .bottom { border-top: 1px solid rgba(107,79,58,0.1); padding-top: 8px; display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+    .s4 .cta { font-size: 7px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--warm-brown); }
+    .s4 .logo-mark { font-family: 'Forum', serif; font-size: 8px; color: var(--stone); letter-spacing: 0.08em; }
+  </style>
+</head>
+<body>
+
+<!-- Password Gate -->
+<div id="gate">
+  <h1>Summer & Beyond</h1>
+  <p>Social Studio</p>
+  <input type="password" id="pw-input" placeholder="Password" autocomplete="current-password">
+  <div id="gate-error"></div>
+  <button onclick="checkPassword()">Enter Studio</button>
+</div>
+
+<!-- App -->
+<div id="app">
+  <header>
+    <div class="brand">Summer & Beyond <span>Social Studio</span></div>
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab('editor')">Editor</button>
+      <button class="tab-btn" onclick="switchTab('library')">Library</button>
+    </div>
+  </header>
+
+  <!-- Editor View -->
+  <div id="editor-view">
+    <!-- Template Picker -->
+    <div id="template-picker">
+      <div class="picker-label">Templates</div>
+      <div class="tpl-card active" data-tpl="g1" onclick="selectTemplate('g1')">
+        <div class="tpl-name">Destination Hero</div>
+        <div class="tpl-type">Grid Post</div>
+      </div>
+      <div class="tpl-card" data-tpl="g2" onclick="selectTemplate('g2')">
+        <div class="tpl-name">Hotel Spotlight</div>
+        <div class="tpl-type">Grid Post</div>
+      </div>
+      <div class="tpl-card" data-tpl="g2b" onclick="selectTemplate('g2b')">
+        <div class="tpl-name">Person Spotlight</div>
+        <div class="tpl-type">Grid Post</div>
+      </div>
+      <div class="tpl-card" data-tpl="g3" onclick="selectTemplate('g3')">
+        <div class="tpl-name">Quote Card</div>
+        <div class="tpl-type">Grid Post</div>
+      </div>
+      <div class="tpl-card" data-tpl="g4" onclick="selectTemplate('g4')">
+        <div class="tpl-name">Itinerary Teaser</div>
+        <div class="tpl-type">Grid Post</div>
+      </div>
+      <div class="tpl-card" data-tpl="s1" onclick="selectTemplate('s1')">
+        <div class="tpl-name">Destination Reveal</div>
+        <div class="tpl-type">Story</div>
+      </div>
+      <div class="tpl-card" data-tpl="s2" onclick="selectTemplate('s2')">
+        <div class="tpl-name">Full Bleed CTA</div>
+        <div class="tpl-type">Story</div>
+      </div>
+      <div class="tpl-card" data-tpl="s3" onclick="selectTemplate('s3')">
+        <div class="tpl-name">Quote Story</div>
+        <div class="tpl-type">Story</div>
+      </div>
+      <div class="tpl-card" data-tpl="s4" onclick="selectTemplate('s4')">
+        <div class="tpl-name">Hotel Feature</div>
+        <div class="tpl-type">Story</div>
+      </div>
+    </div>
+
+    <!-- Live Preview -->
+    <div id="preview-col">
+      <div id="preview-wrap"></div>
+      <div id="preview-label">Preview</div>
+    </div>
+
+    <!-- Form -->
+    <div id="form-col">
+      <div class="form-section-title">Edit Content</div>
+      <!-- Color Scheme Picker -->
+      <div class="scheme-picker">
+        <span class="picker-label-sm">Color Scheme</span>
+        <div class="scheme-swatches" id="scheme-swatches"></div>
+      </div>
+      <div id="fields-container"></div>
+      <div style="margin-top:8px;">
+        <div class="field">
+          <label>Post Title (for library)</label>
+          <input type="text" id="post-title" placeholder="e.g. Hydra Greece — June 2026">
+        </div>
+        <div class="field">
+          <label>Notes (optional)</label>
+          <input type="text" id="post-notes" placeholder="e.g. For Arianna McLaughlin">
+        </div>
+      </div>
+      <button class="btn-primary" id="dl-btn" onclick="downloadPNG()">Download PNG</button>
+      <button class="btn-secondary" onclick="saveToLibrary()">Save to Library</button>
+    </div>
+  </div>
+
+  <!-- Library View -->
+  <div id="library-view">
+    <h2>Saved Posts</h2>
+    <div id="lib-content"></div>
+  </div>
+</div>
+
+<!-- Hidden full-res templates for export -->
+<div id="export-container" style="position:absolute;left:-9999px;top:0;pointer-events:none;"></div>
+
+<script>
+// ── Auth ──
+document.getElementById('pw-input').addEventListener('keydown', e => { if(e.key==='Enter') checkPassword(); });
+function checkPassword() {
+  const val = document.getElementById('pw-input').value;
+  const err = document.getElementById('gate-error');
+  if (val === 'summer2026') {
+    sessionStorage.setItem('sb_auth','1');
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('app').classList.add('visible');
+    renderSchemePicker();
+    selectTemplate('g1');
+  } else {
+    err.textContent = 'Incorrect password';
+    const inp = document.getElementById('pw-input');
+    inp.classList.add('shake');
+    setTimeout(() => inp.classList.remove('shake'), 400);
+  }
+}
+if (sessionStorage.getItem('sb_auth') === '1') {
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('app').classList.add('visible');
+  setTimeout(() => { renderSchemePicker(); selectTemplate('g1'); }, 0);
+}
+// Also init picker on gate entry
+const _origCheck = checkPassword;
+
+
+// ── Tabs ──
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase().includes(tab)));
+  document.getElementById('editor-view').style.display = tab==='editor' ? 'flex' : 'none';
+  const lib = document.getElementById('library-view');
+  lib.style.display = tab==='library' ? 'block' : 'none';
+  if (tab==='library') renderLibrary();
+}
+
+// ── Template config ──
+const TEMPLATES = {
+  g1:  { label: 'Destination Hero', size: [340,340], fields: ['photo','destination_name','tagline'] },
+  g2:  { label: 'Hotel Spotlight',  size: [340,340], fields: ['hotel_photo','hotel_name','location','description'] },
+  g2b: { label: 'Person Spotlight', size: [340,340], fields: ['person_photo','person_name','person_title','quote'] },
+  g3:  { label: 'Quote Card',       size: [340,340], fields: ['quote','attribution'] },
+  g4:  { label: 'Itinerary Teaser', size: [340,340], fields: ['headline','item_1','item_2','item_3','item_4'] },
+  s1:  { label: 'Destination Reveal', size: [200,356], fields: ['photo','destination_name'] },
+  s2:  { label: 'Full Bleed CTA',   size: [200,356], fields: ['photo','headline'] },
+  s3:  { label: 'Quote Story',      size: [200,356], fields: ['quote','attribution'] },
+  s4:  { label: 'Hotel Feature',    size: [200,356], fields: ['hotel_photo','hotel_name','location','description'] },
+};
+
+const FIELD_LABELS = {
+  photo: 'Photo', hotel_photo: 'Hotel Photo', person_photo: 'Person Photo',
+  destination_name: 'Destination Name', hotel_name: 'Hotel Name',
+  person_name: 'Person Name', person_title: 'Title / Location',
+  tagline: 'Tagline', description: 'Description', quote: 'Quote',
+  attribution: 'Attribution', headline: 'Headline',
+  item_1:'Item 1', item_2:'Item 2', item_3:'Item 3', item_4:'Item 4',
+};
+const FIELD_PLACEHOLDERS = {
+  destination_name: 'Hydra, Greece', hotel_name: 'Hotel Poseidon',
+  person_name: 'Hallie Lenahan', person_title: 'Travel Advisor',
+  tagline: 'A short evocative line about this place →',
+  description: 'One or two lines about what makes this special.',
+  quote: '"The best trips feel inevitable."',
+  attribution: 'Client Name · Destination',
+  headline: 'Five Reasons to Visit Greece',
+  item_1:'First reason or highlight',item_2:'About the hotels or experience',
+  item_3:'Something sensory or memorable',item_4:'The thing that seals it',
+};
+const TEXTAREA_FIELDS = new Set(['description','quote','tagline']);
+const PHOTO_FIELDS = new Set(['photo','hotel_photo','person_photo']);
+
+let activeTemplate = 'g1';
+let photoData = {}; // fieldKey -> dataURL
+
+// Default placeholder photos (Unsplash, free to use)
+const DEFAULT_PHOTOS = {
+  photo: 'https://images.unsplash.com/photo-1533105079780-92b9be482077?w=1080&q=80', // Santorini
+  hotel_photo: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1080&q=80', // luxury hotel pool
+  person_photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&q=80', // person portrait
+};
+
+// ── Select Template ──
+function selectTemplate(id) {
+  activeTemplate = id;
+  photoData = {};
+  document.querySelectorAll('.tpl-card').forEach(c => c.classList.toggle('active', c.dataset.tpl === id));
+  renderFields(id);
+  renderPreview(id);
+  document.getElementById('post-title').value = '';
+  document.getElementById('post-notes').value = '';
+}
+
+// ── Fields ──
+function renderFields(id) {
+  const tpl = TEMPLATES[id];
+  const container = document.getElementById('fields-container');
+  container.innerHTML = '';
+  tpl.fields.forEach(f => {
+    const div = document.createElement('div');
+    div.className = 'field';
+    div.innerHTML = `<label>${FIELD_LABELS[f]||f}</label>`;
+    if (PHOTO_FIELDS.has(f)) {
+      div.innerHTML += `<input type="file" accept="image/*" id="field-${f}" onchange="handlePhoto('${f}',this)">
+        <img id="preview-${f}" class="photo-preview">`;
+    } else if (TEXTAREA_FIELDS.has(f)) {
+      div.innerHTML += `<textarea id="field-${f}" placeholder="${FIELD_PLACEHOLDERS[f]||''}" oninput="debouncedUpdate()"></textarea>`;
+    } else {
+      div.innerHTML += `<input type="text" id="field-${f}" placeholder="${FIELD_PLACEHOLDERS[f]||''}" oninput="debouncedUpdate()">`;
+    }
+    container.appendChild(div);
+  });
+}
+
+// ── Photo handling ──
+function handlePhoto(fieldKey, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    photoData[fieldKey] = e.target.result;
+    const prev = document.getElementById(`preview-${fieldKey}`);
+    if (prev) { prev.src = e.target.result; prev.style.display = 'block'; }
+    renderPreview(activeTemplate);
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── Debounce ──
+let _dTimer;
+function debouncedUpdate() { clearTimeout(_dTimer); _dTimer = setTimeout(() => renderPreview(activeTemplate), 150); }
+
+// ── Get field value ──
+function fv(id) {
+  const el = document.getElementById(`field-${id}`);
+  return el ? el.value.trim() : '';
+}
+
+// ── Build template HTML ──
+function buildTemplateHTML(id, scale) {
+  const w = TEMPLATES[id].size[0] * scale;
+  const h = TEMPLATES[id].size[1] * scale;
+  const getPhoto = (key) => photoData[key] || DEFAULT_PHOTOS[key] || null;
+  const ph = (key, style='') => {
+    const src = getPhoto(key);
+    return src
+      ? `<img src="${src}" style="width:100%;height:100%;object-fit:cover;display:block;${style}" crossorigin="anonymous">`
+      : `<div class="ph"><span>Add Photo</span></div>`;
+  };
+
+  const styles = document.querySelector('style').textContent;
+
+  let inner = '';
+  if (id==='g1') {
+    const dest = fv('destination_name') || 'Destination Name';
+    const tag  = fv('tagline') || 'A short evocative line about this place →';
+    const p = getPhoto('photo');
+    inner = `<div class="g1" style="width:${w}px;height:${h}px;">
+      ${p ? `<img class="photo" src="${p}" crossorigin="anonymous" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">` : '<div class="ph"><span>Full-bleed image</span></div>'}
+      <div class="overlay"></div>
+      <div class="logo-mark">S & B</div>
+      <div class="content">
+        <div class="eyebrow">Summer &amp; Beyond</div>
+        <div class="headline">${dest}</div>
+        <div class="tagline">${tag}</div>
+      </div>
+    </div>`;
+  } else if (id==='g2') {
+    const hp = getPhoto('hotel_photo');
+    inner = `<div class="g2" style="width:${w}px;height:${h}px;">
+      <div class="img-side">${hp ? `<img src="${hp}" crossorigin="anonymous" style="width:100%;height:100%;object-fit:cover;">` : '<div class="ph"><span>Hotel photo</span></div>'}</div>
+      <div class="text-side">
+        <div class="top">
+          <div class="eyebrow">Where to Stay</div>
+          <div class="hotel-name">${fv('hotel_name')||'Hotel Name Here'}</div>
+          <div class="location">${fv('location')||'City, Country'}</div>
+          <div class="detail-line">${fv('description')||'Brief note on what makes this place special.'}</div>
+        </div>
+        <div class="bottom">
+          <div class="cta">Inquire →</div>
+          <div class="logo-mark">S &amp; B</div>
+        </div>
+      </div>
+    </div>`;
+  } else if (id==='g2b') {
+    const hasQ = fv('quote');
+    const pp = getPhoto('person_photo');
+    inner = `<div class="g2b" style="width:${w}px;height:${h}px;">
+      <div class="circle-wrap">${pp ? `<img src="${pp}" crossorigin="anonymous" style="width:100%;height:100%;object-fit:cover;">` : '<div class="ph"><span>Person Photo</span></div>'}</div>
+      <div class="person-name">${fv('person_name')||'Person Name'}</div>
+      <div class="person-title">${fv('person_title')||'Travel Advisor'}</div>
+      <div class="rule"></div>
+      ${hasQ ? `<div class="person-quote">"${hasQ}"</div>` : ''}
+      <div class="bottom-brand">Summer &amp; Beyond</div>
+    </div>`;
+  } else if (id==='g3') {
+    inner = `<div class="g3" style="width:${w}px;height:${h}px;">
+      <div class="rule"></div>
+      <div class="quote">${fv('quote')||'"The best trips feel inevitable — like they were always meant to happen."'}</div>
+      <div class="attribution">${fv('attribution')||'Client name or leave as brand voice'}</div>
+      <div class="logo-mark">Summer &amp; Beyond</div>
+    </div>`;
+  } else if (id==='g4') {
+    const items = [1,2,3,4].map(i => {
+      const t = fv(`item_${i}`);
+      return t ? `<div class="list-item"><div class="num">0${i}</div><div class="item-text">${t}</div></div>` : '';
+    }).join('');
+    inner = `<div class="g4" style="width:${w}px;height:${h}px;">
+      <div class="accent-line"></div>
+      <div class="headline">${fv('headline')||'Five Reasons to Visit Destination'}</div>
+      <div>${items || '<div class="list-item"><div class="num">01</div><div class="item-text">Add your first highlight here</div></div>'}</div>
+      <div class="logo-mark">S &amp; B</div>
+    </div>`;
+  } else if (id==='s1') {
+    const s1p = getPhoto('photo');
+    inner = `<div class="s1" style="width:${w}px;height:${h}px;">
+      ${s1p ? `<img class="photo" src="${s1p}" crossorigin="anonymous" style="position:absolute;top:0;left:0;right:0;height:62%;width:100%;object-fit:cover;">` : '<div class="ph"><span>Destination photo</span></div>'}
+      <div class="logo-mark">Summer &amp; Beyond</div>
+      <div class="bottom-panel">
+        <div>
+          <div class="eyebrow">Now Planning</div>
+          <div class="headline">${fv('destination_name')||'Destination Name'}</div>
+        </div>
+        <div class="subtext">Swipe up to inquire · summerandbeyondtravel.com</div>
+      </div>
+    </div>`;
+  } else if (id==='s2') {
+    const s2p = getPhoto('photo');
+    inner = `<div class="s2" style="width:${w}px;height:${h}px;">
+      ${s2p ? `<img class="photo" src="${s2p}" crossorigin="anonymous" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">` : '<div class="ph"><span>Full-bleed photo</span></div>'}
+      <div class="overlay"></div>
+      <div class="logo-mark">S &amp; B</div>
+      <div class="content">
+        <div class="eyebrow">Bespoke Travel</div>
+        <div class="headline">${fv('headline')||'Your Next Chapter Starts Here'}</div>
+        <div class="cta-pill">Book a Consultation</div>
+      </div>
+    </div>`;
+  } else if (id==='s3') {
+    inner = `<div class="s3" style="width:${w}px;height:${h}px;">
+      <div class="ornament">"</div>
+      <div class="quote">${fv('quote')||'Replace with a real client quote about the trip or experience.'}</div>
+      <div class="rule"></div>
+      <div class="attribution">${fv('attribution')||'Client First Name · Destination Traveled'}</div>
+      <div class="logo-mark">Summer &amp; Beyond</div>
+    </div>`;
+  } else if (id==='s4') {
+    const s4hp = getPhoto('hotel_photo');
+    inner = `<div class="s4" style="width:${w}px;height:${h}px;">
+      <div class="photo-wrap">${s4hp ? `<img src="${s4hp}" crossorigin="anonymous" style="width:100%;height:100%;object-fit:cover;">` : '<div class="ph"><span>Hotel photo</span></div>'}</div>
+      <div class="content">
+        <div>
+          <div class="tag">Where to Stay</div>
+          <div class="hotel-name">${fv('hotel_name')||'Hotel Name Goes Here'}</div>
+          <div class="location">${fv('location')||'City · Country'}</div>
+          <div class="description">${fv('description')||'One or two lines about what makes this property special.'}</div>
+        </div>
+        <div class="bottom">
+          <div class="cta">Inquire About This Property →</div>
+          <div class="logo-mark">Summer &amp; Beyond</div>
+        </div>
+      </div>
+    </div>`;
+  }
+  return inner;
+}
+
+// ── Preview ──
+function renderPreview(id) {
+  const wrap = document.getElementById('preview-wrap');
+  const col = document.getElementById('preview-col');
+  const [tw, th] = TEMPLATES[id].size;
+  const availW = col.clientWidth - 48;
+  const availH = col.clientHeight - 80;
+  const scale = Math.min(availW/tw, availH/th, 1);
+  wrap.style.width = (tw * scale) + 'px';
+  wrap.style.height = (th * scale) + 'px';
+  wrap.style.overflow = 'hidden';
+  wrap.innerHTML = `<div style="transform:scale(${scale});transform-origin:top left;width:${tw}px;height:${th}px;">
+    ${applyScheme(buildTemplateHTML(id, 1))}
+  </div>`;
+  document.getElementById('preview-label').textContent = `${TEMPLATES[id].label} · ${tw} × ${th}px · ${SCHEMES.find(s=>s.id===activeScheme)?.label}`;
+}
+
+// ── Export PNG ──
+async function downloadPNG() {
+  const btn = document.getElementById('dl-btn');
+  btn.disabled = true; btn.textContent = 'Generating...';
+  try {
+    const [tw, th] = TEMPLATES[activeTemplate].size;
+    const container = document.getElementById('export-container');
+    container.innerHTML = applyScheme(buildTemplateHTML(activeTemplate, 1));
+    const el = container.firstElementChild;
+    el.style.width = tw + 'px'; el.style.height = th + 'px';
+    await new Promise(r => setTimeout(r, 300));
+    const canvas = await html2canvas(el, { scale: 3, useCORS: true, allowTaint: true, backgroundColor: null, logging: false });
+    const link = document.createElement('a');
+    link.download = `sb-${activeTemplate}-${Date.now()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    container.innerHTML = '';
+  } catch(e) { alert('Export failed: ' + e.message); }
+  btn.disabled = false; btn.textContent = 'Download PNG';
+}
+
+// ── Save to Library ──
+async function saveToLibrary() {
+  const title = document.getElementById('post-title').value.trim() || `${TEMPLATES[activeTemplate].label} — ${new Date().toLocaleDateString()}`;
+  const notes = document.getElementById('post-notes').value.trim();
+  const [tw, th] = TEMPLATES[activeTemplate].size;
+  const container = document.getElementById('export-container');
+  container.innerHTML = applyScheme(buildTemplateHTML(activeTemplate, 1));
+  const el = container.firstElementChild;
+  el.style.width = tw + 'px'; el.style.height = th + 'px';
+  await new Promise(r => setTimeout(r, 300));
+  let thumbDataUrl = '';
+  try {
+    const c = await html2canvas(el, { scale: 0.5, useCORS: true, allowTaint: true, backgroundColor: null, logging: false });
+    thumbDataUrl = c.toDataURL('image/jpeg', 0.7);
+  } catch(e) {}
+  container.innerHTML = '';
+  const fields = {};
+  TEMPLATES[activeTemplate].fields.forEach(f => {
+    if (!PHOTO_FIELDS.has(f)) fields[f] = fv(f);
+  });
+  const post = {
+    id: crypto.randomUUID(), title, template: activeTemplate,
+    savedAt: new Date().toISOString(), notes, scheme: activeScheme,
+    fields, photoData: {...photoData}, thumbnailDataUrl: thumbDataUrl,
+  };
+  const posts = JSON.parse(localStorage.getItem('sb_studio_posts') || '[]');
+  posts.unshift(post);
+  localStorage.setItem('sb_studio_posts', JSON.stringify(posts));
+  alert(`Saved "${title}" to library!`);
+}
+
+// ── Library ──
+function renderLibrary() {
+  const posts = JSON.parse(localStorage.getItem('sb_studio_posts') || '[]');
+  const el = document.getElementById('lib-content');
+  if (!posts.length) { el.innerHTML = '<div class="lib-empty">No saved posts yet. Create something in the Editor!</div>'; return; }
+  el.innerHTML = `<div class="lib-grid">${posts.map(p => `
+    <div class="lib-card" id="card-${p.id}">
+      <img src="${p.thumbnailDataUrl||''}" onerror="this.style.display='none'">
+      <div class="lib-card-body">
+        <div class="lib-card-title">${p.title}</div>
+        <div class="lib-card-meta">${TEMPLATES[p.template]?.label||p.template} · ${new Date(p.savedAt).toLocaleDateString()}</div>
+        ${p.notes ? `<div style="font-size:11px;color:var(--stone);margin-bottom:8px;">${p.notes}</div>` : ''}
+        <div class="lib-card-actions">
+          <button class="lib-btn lib-btn-edit" onclick="reEditPost('${p.id}')">Re-edit</button>
+          <button class="lib-btn lib-btn-dl" onclick="reDownloadPost('${p.id}')">Download</button>
+          <button class="lib-btn lib-btn-del" onclick="deletePost('${p.id}')">Delete</button>
+        </div>
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+function reEditPost(id) {
+  const posts = JSON.parse(localStorage.getItem('sb_studio_posts') || '[]');
+  const post = posts.find(p => p.id === id);
+  if (!post) return;
+  switchTab('editor');
+  selectTemplate(post.template);
+  setTimeout(() => {
+    Object.entries(post.fields||{}).forEach(([k,v]) => {
+      const el = document.getElementById(`field-${k}`);
+      if (el) el.value = v;
+    });
+    photoData = {...(post.photoData||{})};
+    Object.keys(photoData).forEach(k => {
+      const prev = document.getElementById(`preview-${k}`);
+      if (prev) { prev.src = photoData[k]; prev.style.display = 'block'; }
+    });
+    document.getElementById('post-title').value = post.title;
+    document.getElementById('post-notes').value = post.notes || '';
+    if (post.scheme) { activeScheme = post.scheme; renderSchemePicker(); }
+    renderPreview(post.template);
+  }, 100);
+}
+
+async function reDownloadPost(id) {
+  const posts = JSON.parse(localStorage.getItem('sb_studio_posts') || '[]');
+  const post = posts.find(p => p.id === id);
+  if (!post) return;
+  reEditPost(id);
+  setTimeout(downloadPNG, 400);
+}
+
+function deletePost(id) {
+  if (!confirm('Delete this post?')) return;
+  const posts = JSON.parse(localStorage.getItem('sb_studio_posts') || '[]').filter(p => p.id !== id);
+  localStorage.setItem('sb_studio_posts', JSON.stringify(posts));
+  renderLibrary();
+}
+
+// ── Color Schemes ──
+const SCHEMES = [
+  { id: 'classic',   label: 'Classic',     bg: '#6B4F3A', accent: '#A3BA9E', text: '#F5F0E8', detail: '#D4A5A0' },
+  { id: 'sage',      label: 'Sage',        bg: '#A3BA9E', accent: '#F5F0E8', text: '#6B4F3A', detail: '#D4A5A0' },
+  { id: 'cream',     label: 'Cream',       bg: '#F5F0E8', accent: '#A3BA9E', text: '#6B4F3A', detail: '#D4A5A0' },
+  { id: 'blush',     label: 'Blush',       bg: '#D4A5A0', accent: '#A3BA9E', text: '#F5F0E8', detail: '#6B4F3A' },
+  { id: 'midnight',  label: 'Midnight',    bg: '#3B3530', accent: '#A3BA9E', text: '#F5F0E8', detail: '#D4A5A0' },
+];
+
+let activeScheme = 'classic';
+
+function renderSchemePicker() {
+  const container = document.getElementById('scheme-swatches');
+  container.innerHTML = SCHEMES.map(s => `
+    <div class="scheme-swatch ${s.id===activeScheme?'active':''}" onclick="selectScheme('${s.id}')" title="${s.label}">
+      <div class="swatch-inner">
+        <span style="background:${s.bg}"></span>
+        <span style="background:${s.accent}"></span>
+        <span style="background:${s.text}"></span>
+        <span style="background:${s.detail}"></span>
+      </div>
+    </div>`).join('');
+}
+
+function selectScheme(id) {
+  activeScheme = id;
+  renderSchemePicker();
+  renderPreview(activeTemplate);
+}
+
+function getScheme() { return SCHEMES.find(s => s.id === activeScheme) || SCHEMES[0]; }
+
+// Inject scheme colors into template HTML by overriding CSS vars inline
+function applyScheme(html) {
+  const s = getScheme();
+  // Wrap in a div that overrides CSS vars for this template only
+  return `<div style="
+    --warm-brown:${s.bg};
+    --sage:${s.accent};
+    --cream:${s.text};
+    --dusty-pink:${s.detail};
+    --stone:${s.text}99;
+  ">${html}</div>`;
+}
+
+// ── Resize handler ──
+window.addEventListener('resize', () => { if (activeTemplate) renderPreview(activeTemplate); });
+</script>
+</body>
+</html>
