@@ -117,12 +117,23 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'Invalid JSON' });
   }
 
-  const { html, designW, designH, exportW, exportH } = payload;
+  const { html, scheme, designW, designH, exportW, exportH } = payload;
   if (!html || !designW || !designH || !exportW || !exportH) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
   const deviceScaleFactor = exportW / designW;
+
+  // Build scheme override CSS — replaces default brand colors with active scheme
+  const schemeOverride = scheme ? `
+    :root, * {
+      --warm-brown: ${scheme.bg || '#6B4F3A'};
+      --sage: ${scheme.accent || '#A3BA9E'};
+      --cream: ${scheme.text || '#F5F0E8'};
+      --dusty-pink: ${scheme.detail || '#D4A5A0'};
+      --stone: ${scheme.text ? scheme.text + '99' : '#A09B99'};
+    }
+  ` : '';
 
   const fullHtml = `<!DOCTYPE html>
 <html>
@@ -134,6 +145,7 @@ module.exports = async (req, res) => {
 <style>
 body { width: ${designW}px; height: ${designH}px; overflow: hidden; margin: 0; padding: 0; }
 ${BRAND_CSS}
+${schemeOverride}
 </style>
 </head>
 <body>${html}</body>

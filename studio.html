@@ -729,11 +729,8 @@ async function downloadPNG() {
     const [ew, eh] = tpl.export || [tw * 3, th * 3];
 
     // Build template HTML at DESIGN size (340px) — server uses deviceScaleFactor to upscale crisply
-    const html = applyScheme(buildTemplateHTML(activeTemplate, 1));
-    // Grab all CSS from the page so the server can render with correct styles
-    const css = Array.from(document.styleSheets)
-      .flatMap(sheet => { try { return Array.from(sheet.cssRules).map(r => r.cssText); } catch { return []; } })
-      .join('\n');
+    const scheme = getScheme();
+    const html = buildTemplateHTML(activeTemplate, 1); // raw, no applyScheme wrapper
 
     // Try server-side Playwright export (crisp — uses deviceScaleFactor, not bitmap upscaling)
     let useServer = true;
@@ -742,7 +739,7 @@ async function downloadPNG() {
       const resp = await fetch('/api/export', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ html, css, designW: tw, designH: th, exportW: ew, exportH: eh })
+        body: JSON.stringify({ html, scheme, designW: tw, designH: th, exportW: ew, exportH: eh })
       });
       if (resp.ok) {
         blob = await resp.blob();
@@ -757,7 +754,7 @@ async function downloadPNG() {
       // Fallback: html2canvas with high devicePixelRatio equivalent
       const exportScale = ew / tw;
       const container = document.getElementById('export-container');
-      container.innerHTML = applyScheme(buildTemplateHTML(activeTemplate, 1));
+      container.innerHTML = applyScheme(html);
       const el = container.firstElementChild;
       el.style.width = tw + 'px'; el.style.height = th + 'px';
       await new Promise(r => setTimeout(r, 400));
