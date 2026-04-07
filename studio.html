@@ -730,6 +730,10 @@ async function downloadPNG() {
 
     // Build template HTML at DESIGN size (340px) — server uses deviceScaleFactor to upscale crisply
     const html = applyScheme(buildTemplateHTML(activeTemplate, 1));
+    // Grab all CSS from the page so the server can render with correct styles
+    const css = Array.from(document.styleSheets)
+      .flatMap(sheet => { try { return Array.from(sheet.cssRules).map(r => r.cssText); } catch { return []; } })
+      .join('\n');
 
     // Try server-side Playwright export (crisp — uses deviceScaleFactor, not bitmap upscaling)
     let useServer = true;
@@ -738,7 +742,7 @@ async function downloadPNG() {
       const resp = await fetch('/api/export', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ html, designW: tw, designH: th, exportW: ew, exportH: eh })
+        body: JSON.stringify({ html, css, designW: tw, designH: th, exportW: ew, exportH: eh })
       });
       if (resp.ok) {
         blob = await resp.blob();

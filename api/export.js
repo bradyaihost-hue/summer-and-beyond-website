@@ -33,14 +33,14 @@ module.exports = async (req, res) => {
   // designW/designH = CSS coordinate space (e.g. 340x340)
   // exportW/exportH = actual pixel output (e.g. 1080x1080)
   // deviceScaleFactor = exportW / designW — fonts/layout stay at designW, pixels are exportW
-  const { html, designW, designH, exportW, exportH } = payload;
+  const { html, css, designW, designH, exportW, exportH } = payload;
   if (!html || !designW || !designH || !exportW || !exportH) {
     return res.status(400).json({ error: 'Missing html, designW, designH, exportW, exportH' });
   }
 
   const deviceScaleFactor = exportW / designW;
 
-  // Wrap template HTML with fonts + brand CSS
+  // Wrap template HTML with fonts + all page CSS for correct rendering
   const fullHtml = `<!DOCTYPE html>
 <html>
 <head>
@@ -50,7 +50,8 @@ module.exports = async (req, res) => {
 <link href="https://fonts.googleapis.com/css2?family=Forum&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{width:${designW}px;height:${designH}px;overflow:hidden;}
+body{width:${designW}px;height:${designH}px;overflow:hidden;background:transparent;}
+${css || ''}
 </style>
 </head>
 <body>${html}</body>
