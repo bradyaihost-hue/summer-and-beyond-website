@@ -478,15 +478,15 @@ function switchTab(tab) {
 
 // ── Template config ──
 const TEMPLATES = {
-  g1:  { label: 'Destination Hero', size: [340,340], fields: ['photo','destination_name','tagline'] },
-  g2:  { label: 'Hotel Spotlight',  size: [340,340], fields: ['hotel_photo','hotel_name','location','description'] },
-  g2b: { label: 'Person Spotlight', size: [340,340], fields: ['person_photo','person_name','person_title','quote'] },
-  g3:  { label: 'Quote Card',       size: [340,340], fields: ['quote','attribution'] },
-  g4:  { label: 'Itinerary Teaser', size: [340,340], fields: ['headline','item_1','item_2','item_3','item_4'] },
-  s1:  { label: 'Destination Reveal', size: [200,356], fields: ['photo','destination_name'] },
-  s2:  { label: 'Full Bleed CTA',   size: [200,356], fields: ['photo','headline'] },
-  s3:  { label: 'Quote Story',      size: [200,356], fields: ['quote','attribution'] },
-  s4:  { label: 'Hotel Feature',    size: [200,356], fields: ['hotel_photo','hotel_name','location','description'] },
+  g1:  { label: 'Destination Hero',   size: [340,340],  export: [1080,1080], fields: ['photo','destination_name','tagline'] },
+  g2:  { label: 'Hotel Spotlight',    size: [340,340],  export: [1080,1080], fields: ['hotel_photo','hotel_name','location','description'] },
+  g2b: { label: 'Person Spotlight',   size: [340,340],  export: [1080,1080], fields: ['person_photo','person_name','person_title','quote'] },
+  g3:  { label: 'Quote Card',         size: [340,340],  export: [1080,1080], fields: ['quote','attribution'] },
+  g4:  { label: 'Itinerary Teaser',   size: [340,340],  export: [1080,1080], fields: ['headline','item_1','item_2','item_3','item_4'] },
+  s1:  { label: 'Destination Reveal', size: [200,356],  export: [1080,1920], fields: ['photo','destination_name'] },
+  s2:  { label: 'Full Bleed CTA',     size: [200,356],  export: [1080,1920], fields: ['photo','headline'] },
+  s3:  { label: 'Quote Story',        size: [200,356],  export: [1080,1920], fields: ['quote','attribution'] },
+  s4:  { label: 'Hotel Feature',      size: [200,356],  export: [1080,1920], fields: ['hotel_photo','hotel_name','location','description'] },
 };
 
 const FIELD_LABELS = {
@@ -720,7 +720,8 @@ function renderPreview(id) {
   wrap.innerHTML = `<div style="transform:scale(${scale});transform-origin:top left;width:${tw}px;height:${th}px;">
     ${applyScheme(buildTemplateHTML(id, 1))}
   </div>`;
-  document.getElementById('preview-label').textContent = `${TEMPLATES[id].label} · ${tw} × ${th}px · ${SCHEMES.find(s=>s.id===activeScheme)?.label}`;
+  const [ew, eh] = TEMPLATES[id].export || [tw, th];
+  document.getElementById('preview-label').textContent = `${TEMPLATES[id].label} · exports ${ew} × ${eh}px · ${SCHEMES.find(s=>s.id===activeScheme)?.label}`;
 }
 
 // ── Export PNG ──
@@ -728,13 +729,16 @@ async function downloadPNG() {
   const btn = document.getElementById('dl-btn');
   btn.disabled = true; btn.textContent = 'Generating...';
   try {
-    const [tw, th] = TEMPLATES[activeTemplate].size;
+    const tpl = TEMPLATES[activeTemplate];
+    const [tw, th] = tpl.size;                      // design/preview dimensions
+    const [ew, eh] = tpl.export || [tw*3, th*3];    // export dimensions (IG spec)
+    const exportScale = ew / tw;                     // scale factor: e.g. 1080/340 ≈ 3.18
     const container = document.getElementById('export-container');
     container.innerHTML = applyScheme(buildTemplateHTML(activeTemplate, 1));
     const el = container.firstElementChild;
     el.style.width = tw + 'px'; el.style.height = th + 'px';
     await new Promise(r => setTimeout(r, 300));
-    const canvas = await html2canvas(el, { scale: 3, useCORS: true, allowTaint: true, backgroundColor: null, logging: false });
+    const canvas = await html2canvas(el, { scale: exportScale, useCORS: true, allowTaint: true, backgroundColor: null, logging: false });
     const link = document.createElement('a');
     link.download = `sb-${activeTemplate}-${Date.now()}.png`;
     link.href = canvas.toDataURL('image/png');
