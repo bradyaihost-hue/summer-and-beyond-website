@@ -1,8 +1,11 @@
 {
   "outputDirectory": ".",
   "functions": {
-    "api/submit.js": {
-      "maxDuration": 15
-    }
-  }
+    "api/submit.js": { "maxDuration": 15 },
+    "api/posts.js": { "maxDuration": 15 }
+  },
+  "rewrites": [
+    { "source": "/api/posts/:id", "destination": "/api/posts" },
+    { "source": "/api/posts", "destination": "/api/posts" }
+  ]
 }

@@ -744,6 +744,29 @@ async function downloadPNG() {
   btn.disabled = false; btn.textContent = 'Download PNG';
 }
 
+// ── API helpers ──
+const API_TOKEN = 'summer2026';
+const API = '/api/posts';
+async function apiGet() {
+  try {
+    const r = await fetch(API, { headers: { Authorization: `Bearer ${API_TOKEN}` } });
+    if (!r.ok) throw new Error('API error');
+    return await r.json();
+  } catch { return null; }
+}
+async function apiSave(post) {
+  try {
+    const r = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${API_TOKEN}` }, body: JSON.stringify(post) });
+    return r.ok;
+  } catch { return false; }
+}
+async function apiDelete(id) {
+  try {
+    const r = await fetch(`${API}/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${API_TOKEN}` } });
+    return r.ok;
+  } catch { return false; }
+}
+
 // ── Save to Library ──
 async function saveToLibrary() {
   const title = document.getElementById('post-title').value.trim() || `${TEMPLATES[activeTemplate].label} — ${new Date().toLocaleDateString()}`;
@@ -769,16 +792,26 @@ async function saveToLibrary() {
     savedAt: new Date().toISOString(), notes, scheme: activeScheme,
     fields, photoData: {...photoData}, thumbnailDataUrl: thumbDataUrl,
   };
+  // Save to API (Neon) + localStorage fallback
+  const saved = await apiSave(post);
   const posts = JSON.parse(localStorage.getItem('sb_studio_posts') || '[]');
   posts.unshift(post);
   localStorage.setItem('sb_studio_posts', JSON.stringify(posts));
-  alert(`Saved "${title}" to library!`);
+  alert(`Saved "${title}" to library!${saved ? '' : ' (offline — will sync when connected)'}`);
 }
 
 // ── Library ──
-function renderLibrary() {
-  const posts = JSON.parse(localStorage.getItem('sb_studio_posts') || '[]');
+async function renderLibrary() {
   const el = document.getElementById('lib-content');
+  el.innerHTML = '<div class="lib-empty">Loading...</div>';
+  // Try API first, fall back to localStorage
+  let posts = await apiGet();
+  if (!posts) {
+    posts = JSON.parse(localStorage.getItem('sb_studio_posts') || '[]');
+  } else {
+    // Sync API results back to localStorage
+    localStorage.setItem('sb_studio_posts', JSON.stringify(posts));
+  }
   if (!posts.length) { el.innerHTML = '<div class="lib-empty">No saved posts yet. Create something in the Editor!</div>'; return; }
   el.innerHTML = `<div class="lib-grid">${posts.map(p => `
     <div class="lib-card" id="card-${p.id}">
@@ -827,8 +860,9 @@ async function reDownloadPost(id) {
   setTimeout(downloadPNG, 400);
 }
 
-function deletePost(id) {
+async function deletePost(id) {
   if (!confirm('Delete this post?')) return;
+  await apiDelete(id);
   const posts = JSON.parse(localStorage.getItem('sb_studio_posts') || '[]').filter(p => p.id !== id);
   localStorage.setItem('sb_studio_posts', JSON.stringify(posts));
   renderLibrary();
