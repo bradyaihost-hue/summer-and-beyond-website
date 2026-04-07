@@ -582,22 +582,22 @@ function buildTemplateHTML(id, scale) {
   const w = TEMPLATES[id].size[0] * scale;
   const h = TEMPLATES[id].size[1] * scale;
   const getPhoto = (key) => photoData[key] || DEFAULT_PHOTOS[key] || null;
-  const ph = (key, style='') => {
+
+  // Use background-image divs instead of <img> — html2canvas ignores object-fit on <img>
+  // but correctly renders background-size:cover on divs.
+  const bgDiv = (key, extraStyle='') => {
     const src = getPhoto(key);
     return src
-      ? `<img src="${src}" style="width:100%;height:100%;object-fit:cover;display:block;${style}" crossorigin="anonymous">`
-      : `<div class="ph"><span>Add Photo</span></div>`;
+      ? `<div style="background-image:url('${src}');background-size:cover;background-position:center;${extraStyle}"></div>`
+      : `<div class="ph" style="${extraStyle}"><span>Add Photo</span></div>`;
   };
-
-  const styles = document.querySelector('style').textContent;
 
   let inner = '';
   if (id==='g1') {
     const dest = fv('destination_name') || 'Destination Name';
     const tag  = fv('tagline') || 'A short evocative line about this place →';
-    const p = getPhoto('photo');
     inner = `<div class="g1" style="width:${w}px;height:${h}px;">
-      ${p ? `<img class="photo" src="${p}" crossorigin="anonymous" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">` : '<div class="ph"><span>Full-bleed image</span></div>'}
+      ${bgDiv('photo', 'position:absolute;inset:0;width:100%;height:100%;')}
       <div class="overlay"></div>
       <div class="logo-mark">S & B</div>
       <div class="content">
@@ -607,9 +607,8 @@ function buildTemplateHTML(id, scale) {
       </div>
     </div>`;
   } else if (id==='g2') {
-    const hp = getPhoto('hotel_photo');
     inner = `<div class="g2" style="width:${w}px;height:${h}px;">
-      <div class="img-side">${hp ? `<img src="${hp}" crossorigin="anonymous" style="width:100%;height:100%;object-fit:cover;">` : '<div class="ph"><span>Hotel photo</span></div>'}</div>
+      <div class="img-side">${bgDiv('hotel_photo', 'width:100%;height:100%;')}</div>
       <div class="text-side">
         <div class="top">
           <div class="eyebrow">Where to Stay</div>
@@ -625,9 +624,8 @@ function buildTemplateHTML(id, scale) {
     </div>`;
   } else if (id==='g2b') {
     const hasQ = fv('quote');
-    const pp = getPhoto('person_photo');
     inner = `<div class="g2b" style="width:${w}px;height:${h}px;">
-      <div class="circle-wrap">${pp ? `<img src="${pp}" crossorigin="anonymous" style="width:100%;height:100%;object-fit:cover;">` : '<div class="ph"><span>Person Photo</span></div>'}</div>
+      <div class="circle-wrap">${bgDiv('person_photo', 'width:100%;height:100%;border-radius:50%;')}</div>
       <div class="person-name">${fv('person_name')||'Person Name'}</div>
       <div class="person-title">${fv('person_title')||'Travel Advisor'}</div>
       <div class="rule"></div>
@@ -653,9 +651,8 @@ function buildTemplateHTML(id, scale) {
       <div class="logo-mark">S &amp; B</div>
     </div>`;
   } else if (id==='s1') {
-    const s1p = getPhoto('photo');
     inner = `<div class="s1" style="width:${w}px;height:${h}px;">
-      ${s1p ? `<img class="photo" src="${s1p}" crossorigin="anonymous" style="position:absolute;top:0;left:0;right:0;height:62%;width:100%;object-fit:cover;">` : '<div class="ph"><span>Destination photo</span></div>'}
+      ${bgDiv('photo', 'position:absolute;top:0;left:0;right:0;height:62%;width:100%;')}
       <div class="logo-mark">Summer &amp; Beyond</div>
       <div class="bottom-panel">
         <div>
@@ -666,9 +663,8 @@ function buildTemplateHTML(id, scale) {
       </div>
     </div>`;
   } else if (id==='s2') {
-    const s2p = getPhoto('photo');
     inner = `<div class="s2" style="width:${w}px;height:${h}px;">
-      ${s2p ? `<img class="photo" src="${s2p}" crossorigin="anonymous" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">` : '<div class="ph"><span>Full-bleed photo</span></div>'}
+      ${bgDiv('photo', 'position:absolute;inset:0;width:100%;height:100%;')}
       <div class="overlay"></div>
       <div class="logo-mark">S &amp; B</div>
       <div class="content">
@@ -686,9 +682,8 @@ function buildTemplateHTML(id, scale) {
       <div class="logo-mark">Summer &amp; Beyond</div>
     </div>`;
   } else if (id==='s4') {
-    const s4hp = getPhoto('hotel_photo');
     inner = `<div class="s4" style="width:${w}px;height:${h}px;">
-      <div class="photo-wrap">${s4hp ? `<img src="${s4hp}" crossorigin="anonymous" style="width:100%;height:100%;object-fit:cover;">` : '<div class="ph"><span>Hotel photo</span></div>'}</div>
+      <div class="photo-wrap">${bgDiv('hotel_photo', 'width:100%;height:100%;')}</div>
       <div class="content">
         <div>
           <div class="tag">Where to Stay</div>
