@@ -728,18 +728,17 @@ async function downloadPNG() {
     const [tw, th] = tpl.size;
     const [ew, eh] = tpl.export || [tw * 3, th * 3];
 
-    // Build template HTML at native export resolution (no upscaling)
-    const exportScale = ew / tw;
-    const html = applyScheme(buildTemplateHTML(activeTemplate, exportScale));
+    // Build template HTML at DESIGN size (340px) — server uses deviceScaleFactor to upscale crisply
+    const html = applyScheme(buildTemplateHTML(activeTemplate, 1));
 
-    // Try server-side Playwright export first (crisp, no pixelation)
+    // Try server-side Playwright export (crisp — uses deviceScaleFactor, not bitmap upscaling)
     let useServer = true;
     let blob;
     try {
       const resp = await fetch('/api/export', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ html, width: ew, height: eh })
+        body: JSON.stringify({ html, designW: tw, designH: th, exportW: ew, exportH: eh })
       });
       if (resp.ok) {
         blob = await resp.blob();
@@ -751,13 +750,14 @@ async function downloadPNG() {
     }
 
     if (!useServer) {
-      // Fallback: html2canvas at native size (still sharp since template is already at ew/eh px)
+      // Fallback: html2canvas with high devicePixelRatio equivalent
+      const exportScale = ew / tw;
       const container = document.getElementById('export-container');
-      container.innerHTML = html;
+      container.innerHTML = applyScheme(buildTemplateHTML(activeTemplate, 1));
       const el = container.firstElementChild;
-      el.style.width = ew + 'px'; el.style.height = eh + 'px';
+      el.style.width = tw + 'px'; el.style.height = th + 'px';
       await new Promise(r => setTimeout(r, 400));
-      const canvas = await html2canvas(el, { scale: 1, useCORS: true, allowTaint: true, backgroundColor: null, logging: false });
+      const canvas = await html2canvas(el, { scale: exportScale, useCORS: true, allowTaint: true, backgroundColor: null, logging: false });
       container.innerHTML = '';
       blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
     }

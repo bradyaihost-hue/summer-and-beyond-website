@@ -21,12 +21,17 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'Invalid JSON' });
   }
 
-  const { html, width, height } = payload;
-  if (!html || !width || !height) {
-    return res.status(400).json({ error: 'Missing html, width, or height' });
+  // designW/designH = CSS coordinate space (e.g. 340x340)
+  // exportW/exportH = actual pixel output (e.g. 1080x1080)
+  // deviceScaleFactor = exportW / designW — fonts/layout stay at designW, pixels are exportW
+  const { html, designW, designH, exportW, exportH } = payload;
+  if (!html || !designW || !designH || !exportW || !exportH) {
+    return res.status(400).json({ error: 'Missing html, designW, designH, exportW, exportH' });
   }
 
-  // Wrap template HTML with fonts + brand CSS for correct rendering
+  const deviceScaleFactor = exportW / designW;
+
+  // Wrap template HTML with fonts + brand CSS
   const fullHtml = `<!DOCTYPE html>
 <html>
 <head>
@@ -36,7 +41,7 @@ module.exports = async (req, res) => {
 <link href="https://fonts.googleapis.com/css2?family=Forum&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{width:${width}px;height:${height}px;overflow:hidden;}
+body{width:${designW}px;height:${designH}px;overflow:hidden;}
 </style>
 </head>
 <body>${html}</body>
@@ -45,12 +50,15 @@ body{width:${width}px;height:${height}px;overflow:hidden;}
   let browser;
   try {
     browser = await chromium.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-    const page = await browser.newPage();
-    await page.setViewportSize({ width, height });
+    const context = await browser.newContext({
+      viewport: { width: designW, height: designH },
+      deviceScaleFactor
+    });
+    const page = await context.newPage();
     await page.setContent(fullHtml, { waitUntil: 'networkidle' });
-    // Extra wait for fonts
-    await page.waitForTimeout(500);
-    const buffer = await page.screenshot({ type: 'png', clip: { x: 0, y: 0, width, height } });
+    // Extra wait for fonts to load
+    await page.waitForTimeout(600);
+    const buffer = await page.screenshot({ type: 'png', clip: { x: 0, y: 0, width: designW, height: designH } });
     await browser.close();
 
     res.setHeader('Content-Type', 'image/png');
