@@ -236,6 +236,10 @@
     .lib-btn-del { background: rgba(212,165,160,0.2); color: var(--dusty-pink); }
     .lib-btn:hover { opacity: 0.8; }
 
+    /* ── Draggable text hint ── */
+    [data-key] { cursor: grab; user-select: none; }
+    [data-key]:active { cursor: grabbing; }
+
     /* ── Template Styles (copied from canva-templates.html) ── */
     .g1 { width: 340px; height: 340px; background: var(--warm-brown); position: relative; overflow: hidden; }
     .g1 .photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
@@ -511,8 +515,22 @@ const FIELD_PLACEHOLDERS = {
 const TEXTAREA_FIELDS = new Set(['description','quote','tagline']);
 const PHOTO_FIELDS = new Set(['photo','hotel_photo','person_photo']);
 
+// Text elements that can be resized/moved/hidden (keyed by template → element key)
+const DRAGGABLE_ELEMENTS = {
+  g4: ['headline','item_1','item_2','item_3','item_4'],
+  g1: ['destination_name','tagline'],
+  g2: ['hotel_name','location','description'],
+  g2b: ['person_name','person_title','quote'],
+  g3: ['quote','attribution'],
+  s1: ['destination_name'],
+  s2: ['headline'],
+  s3: ['quote','attribution'],
+  s4: ['hotel_name','location','description'],
+};
+
 let activeTemplate = 'g1';
 let photoData = {}; // fieldKey -> dataURL
+let textOverrides = {}; // fieldKey -> { fontSize, hidden, x, y } — reset on template switch
 
 // Default placeholder photos (Unsplash, free to use)
 const DEFAULT_PHOTOS = {
@@ -525,6 +543,7 @@ const DEFAULT_PHOTOS = {
 function selectTemplate(id) {
   activeTemplate = id;
   photoData = {};
+  textOverrides = {};
   document.querySelectorAll('.tpl-card').forEach(c => c.classList.toggle('active', c.dataset.tpl === id));
   renderFields(id);
   renderPreview(id);
@@ -535,12 +554,33 @@ function selectTemplate(id) {
 // ── Fields ──
 function renderFields(id) {
   const tpl = TEMPLATES[id];
+  const draggable = DRAGGABLE_ELEMENTS[id] || [];
   const container = document.getElementById('fields-container');
   container.innerHTML = '';
   tpl.fields.forEach(f => {
     const div = document.createElement('div');
     div.className = 'field';
-    div.innerHTML = `<label>${FIELD_LABELS[f]||f}</label>`;
+    const canControl = draggable.includes(f);
+    const overrides = textOverrides[f] || {};
+    const isHidden = overrides.hidden || false;
+    const fontSize = overrides.fontSize || null;
+
+    let labelRow = `<label>${FIELD_LABELS[f]||f}</label>`;
+    if (canControl) {
+      labelRow = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+        <label style="margin-bottom:0;">${FIELD_LABELS[f]||f}</label>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <button onclick="changeFontSize('${f}',-1)" title="Smaller text" style="width:22px;height:22px;border:1px solid rgba(107,79,58,0.2);background:white;border-radius:3px;cursor:pointer;font-size:14px;color:var(--warm-brown);padding:0;line-height:1;">−</button>
+          <span id="fs-badge-${f}" style="font-size:9px;color:var(--stone);min-width:24px;text-align:center;">${fontSize ? fontSize+'px' : 'auto'}</span>
+          <button onclick="changeFontSize('${f}',1)" title="Larger text" style="width:22px;height:22px;border:1px solid rgba(107,79,58,0.2);background:white;border-radius:3px;cursor:pointer;font-size:14px;color:var(--warm-brown);padding:0;line-height:1;">+</button>
+          <button onclick="toggleHide('${f}')" title="${isHidden?'Show':'Hide'} this text box" style="width:22px;height:22px;border:1px solid rgba(107,79,58,0.2);background:${isHidden?'rgba(212,165,160,0.3)':'white'};border-radius:3px;cursor:pointer;font-size:11px;color:var(--stone);padding:0;line-height:1;" id="hide-btn-${f}">${isHidden?'👁':'✕'}</button>
+        </div>
+      </div>`;
+    }
+    div.innerHTML = labelRow;
+    if (isHidden && canControl) {
+      div.style.opacity = '0.4';
+    }
     if (PHOTO_FIELDS.has(f)) {
       div.innerHTML += `<input type="file" accept="image/*" id="field-${f}" onchange="handlePhoto('${f}',this)">
         <img id="preview-${f}" class="photo-preview">`;
@@ -551,6 +591,100 @@ function renderFields(id) {
     }
     container.appendChild(div);
   });
+}
+
+// ── Text override controls ──
+function changeFontSize(fieldKey, delta) {
+  const overrides = textOverrides[fieldKey] || {};
+  // Get current computed base size from the template CSS, or fallback
+  const BASE_SIZES = {
+    headline: 22, item_1: 11, item_2: 11, item_3: 11, item_4: 11,
+    destination_name: 30, tagline: 10, hotel_name: 20, location: 9,
+    description: 9, person_name: 22, person_title: 10, quote: 20,
+    attribution: 9,
+  };
+  const current = overrides.fontSize || BASE_SIZES[fieldKey] || 14;
+  const next = Math.max(6, Math.min(60, current + delta));
+  textOverrides[fieldKey] = { ...overrides, fontSize: next };
+  // Update badge
+  const badge = document.getElementById(`fs-badge-${fieldKey}`);
+  if (badge) badge.textContent = next + 'px';
+  renderPreview(activeTemplate);
+}
+
+function toggleHide(fieldKey) {
+  const overrides = textOverrides[fieldKey] || {};
+  const nowHidden = !overrides.hidden;
+  textOverrides[fieldKey] = { ...overrides, hidden: nowHidden };
+  // Update button + field opacity
+  const btn = document.getElementById(`hide-btn-${fieldKey}`);
+  const fieldDiv = btn && btn.closest('.field');
+  if (btn) {
+    btn.textContent = nowHidden ? '👁' : '✕';
+    btn.title = nowHidden ? 'Show this text box' : 'Hide this text box';
+    btn.style.background = nowHidden ? 'rgba(212,165,160,0.3)' : 'white';
+  }
+  if (fieldDiv) fieldDiv.style.opacity = nowHidden ? '0.4' : '1';
+  renderPreview(activeTemplate);
+}
+
+// ── Drag-to-move: applied via an overlay on the preview ──
+let _drag = null; // { key, startX, startY, origX, origY, scale }
+
+function initDragOverlay() {
+  const wrap = document.getElementById('preview-wrap');
+  if (!wrap) return;
+  const draggable = DRAGGABLE_ELEMENTS[activeTemplate] || [];
+  if (!draggable.length) return;
+
+  // For each draggable element, find it in the rendered preview and add a transparent overlay handle
+  const [tw, th] = TEMPLATES[activeTemplate].size;
+  const scale = parseFloat(wrap.children[0]?.style.transform?.replace('scale(','') || 1);
+
+  draggable.forEach(key => {
+    const overrides = textOverrides[key] || {};
+    if (overrides.hidden) return;
+    // Find the element by data-key attribute we'll inject into the template
+    const el = wrap.querySelector(`[data-key="${key}"]`);
+    if (!el) return;
+    el.style.cursor = 'grab';
+    el.addEventListener('mousedown', (e) => startDrag(e, key, scale));
+    el.addEventListener('touchstart', (e) => startDrag(e, key, scale), { passive: false });
+  });
+}
+
+function startDrag(e, key, scale) {
+  e.preventDefault();
+  const isTouch = e.type === 'touchstart';
+  const clientX = isTouch ? e.touches[0].clientX : e.clientX;
+  const clientY = isTouch ? e.touches[0].clientY : e.clientY;
+  const overrides = textOverrides[key] || {};
+  _drag = { key, startX: clientX, startY: clientY, origX: overrides.x || 0, origY: overrides.y || 0, scale };
+
+  const moveHandler = isTouch ? touchMoveHandler : mouseMoveHandler;
+  const upHandler = () => {
+    _drag = null;
+    document.removeEventListener('mousemove', mouseMoveHandler);
+    document.removeEventListener('touchmove', touchMoveHandler);
+    document.removeEventListener('mouseup', upHandler);
+    document.removeEventListener('touchend', upHandler);
+  };
+  document.addEventListener('mousemove', mouseMoveHandler);
+  document.addEventListener('touchmove', touchMoveHandler, { passive: false });
+  document.addEventListener('mouseup', upHandler);
+  document.addEventListener('touchend', upHandler);
+}
+
+function mouseMoveHandler(e) { applyDrag(e.clientX, e.clientY); }
+function touchMoveHandler(e) { e.preventDefault(); applyDrag(e.touches[0].clientX, e.touches[0].clientY); }
+
+function applyDrag(clientX, clientY) {
+  if (!_drag) return;
+  const dx = (clientX - _drag.startX) / _drag.scale;
+  const dy = (clientY - _drag.startY) / _drag.scale;
+  const overrides = textOverrides[_drag.key] || {};
+  textOverrides[_drag.key] = { ...overrides, x: _drag.origX + dx, y: _drag.origY + dy };
+  renderPreview(activeTemplate);
 }
 
 // ── Photo handling ──
@@ -640,13 +774,29 @@ function buildTemplateHTML(id, scale) {
       <div class="logo-mark">Summer &amp; Beyond</div>
     </div>`;
   } else if (id==='g4') {
+    const ov = (key) => textOverrides[key] || {};
+    const txStyle = (key, baseSize) => {
+      const o = ov(key);
+      const fs = o.fontSize ? `font-size:${o.fontSize * scale}px;` : '';
+      const pos = (o.x || o.y) ? `position:relative;left:${(o.x||0)*scale}px;top:${(o.y||0)*scale}px;z-index:1;` : '';
+      return fs + pos;
+    };
+    const isHidden = (key) => (textOverrides[key] || {}).hidden;
+
     const items = [1,2,3,4].map(i => {
       const t = fv(`item_${i}`);
-      return t ? `<div class="list-item"><div class="num">0${i}</div><div class="item-text">${t}</div></div>` : '';
+      const key = `item_${i}`;
+      if (isHidden(key)) return '';
+      const s = txStyle(key, 11);
+      return t ? `<div class="list-item" data-key="${key}" style="${s}"><div class="num">0${i}</div><div class="item-text">${t}</div></div>` : '';
     }).join('');
+
+    const headlineHidden = isHidden('headline');
+    const headlineStyle = txStyle('headline', 22);
+
     inner = `<div class="g4" style="width:${w}px;height:${h}px;">
       <div class="accent-line"></div>
-      <div class="headline">${fv('headline')||'Five Reasons to Visit Destination'}</div>
+      ${headlineHidden ? '' : `<div class="headline" data-key="headline" style="${headlineStyle}">${fv('headline')||'Five Reasons to Visit Destination'}</div>`}
       <div>${items || '<div class="list-item"><div class="num">01</div><div class="item-text">Add your first highlight here</div></div>'}</div>
       <div class="logo-mark">S &amp; B</div>
     </div>`;
@@ -717,6 +867,8 @@ function renderPreview(id) {
   </div>`;
   const [ew, eh] = TEMPLATES[id].export || [tw, th];
   document.getElementById('preview-label').textContent = `${TEMPLATES[id].label} · exports ${ew} × ${eh}px · ${SCHEMES.find(s=>s.id===activeScheme)?.label}`;
+  // Wire up drag handles after render
+  setTimeout(() => initDragOverlay(), 0);
 }
 
 // ── Export PNG ──
